@@ -1,11 +1,3 @@
 package util
 
-import "runtime"
-
-func IsWindows() bool {
-	return runtime.GOOS == "windows"
-}
-
-func IsLinux() bool {
-	return runtime.GOOS == "linux"
-}
+// Put useful utility functions here.
