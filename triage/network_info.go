@@ -10,21 +10,21 @@ import (
 )
 
 func print_network_info() {
-	// var hostname = print_hostname()
-	// print_dnsname(hostname)
-	// print_ip_addrs()
-	print_netstat()
+	var hostname = printHostname()
+	printDNSName(hostname)
+	printIPAddrs()
+	printNetstat()
 }
 
-func print_hostname() string {
-	var hostname, name_err = os.Hostname()
-	if name_err == nil {
+func printHostname() string {
+	var hostname, nameErr = os.Hostname()
+	if nameErr == nil {
 		fmt.Printf("Host Name: %s\n", hostname)
 	}
 	return hostname
 }
 
-func print_dnsname(hostname string) {
+func printDNSName(hostname string) {
 	addrs, err := net.LookupAddr(hostname)
 	if err != nil || len(addrs) == 0 {
 		fmt.Println("Error getting FQDN:", err)
@@ -34,7 +34,7 @@ func print_dnsname(hostname string) {
 	fmt.Printf("DNS Name: %s\n", strings.TrimSuffix(addrs[0], "."))
 }
 
-func print_ip_addrs() {
+func printIPAddrs() {
 	var interfaces, err = net.Interfaces()
 	if err != nil {
 		fmt.Printf("Error obtaining interfaces.\n")
@@ -46,12 +46,12 @@ func print_ip_addrs() {
 			continue
 		}
 		fmt.Printf("Interface: %s\n", iface.Name)
-		var addrs, ip_err = iface.Addrs()
-		if ip_err != nil {
+		var addrs, ipErr = iface.Addrs()
+		if ipErr != nil {
 			fmt.Printf("Error obtaining IP addresses")
 			return
 		}
-		var ipv4_addrs, ipv6_addrs []string
+		var ipv4Addrs, ipv6Addrs []string
 		for _, addr := range addrs {
 			ipNet, ok := addr.(*net.IPNet)
 			if !ok {
@@ -59,17 +59,17 @@ func print_ip_addrs() {
 				return
 			}
 			if ipNet.IP.To4() != nil {
-				ipv4_addrs = append(ipv4_addrs, ipNet.IP.String())
+				ipv4Addrs = append(ipv4Addrs, ipNet.IP.String())
 			} else {
-				ipv6_addrs = append(ipv6_addrs, ipNet.IP.String())
+				ipv6Addrs = append(ipv6Addrs, ipNet.IP.String())
 			}
 		}
-		print_addrs(ipv4_addrs, "  IPv4 Addresses:")
-		print_addrs(ipv6_addrs, "  IPv6 Addresses:")
+		printAddrs(ipv4Addrs, "  IPv4 Addresses:")
+		printAddrs(ipv6Addrs, "  IPv6 Addresses:")
 	}
 }
 
-func print_addrs(list []string, msg string) {
+func printAddrs(list []string, msg string) {
 	if len(list) > 0 {
 		fmt.Println("  ", msg)
 		for _, ip := range list {
@@ -89,7 +89,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	}
 }
 
-func print_netstat() {
+func printNetstat() {
 	// Get TCP IPv4 sockets
 	tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
 	if err != nil {
