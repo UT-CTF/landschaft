@@ -42,7 +42,7 @@ func printGroups() {
 	for scanner.Scan() {
 		line := scanner.Text()
 		arr := strings.Split(line, ":")
-		// avoid all users that can't login
+		// avoid all groups that no one is a part of
 		if arr[3] != "" {
 			fmt.Printf("%-32s|%-4s|%s\n", arr[0], arr[2], arr[3])
 		}
