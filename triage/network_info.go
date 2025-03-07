@@ -10,18 +10,19 @@ import (
 )
 
 func printNetworkInfo() {
-	var hostname = getHostname()
-	fmt.Printf("Host Name: %s\n", hostname)
+	var hostname = getAndPrintHostname()
 	printDNSName(hostname)
 	printIPAddrs()
 	printNetstat()
 }
 
-func getHostname() string {
+func getAndPrintHostname() string {
 	var hostname, nameErr = os.Hostname()
 	if nameErr != nil {
+		fmt.Println("Error getting hostname")
 		return "Error getting hostname"
 	}
+	fmt.Printf("Host Name: %s\n", hostname)
 	return hostname
 }
 
