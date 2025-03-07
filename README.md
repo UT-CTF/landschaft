@@ -4,7 +4,7 @@
 
 # Landschaft
 
-Landschaft is a cross-platform cybersecurity tool designed for rapid system hardening, triage, and monitoring in CCDC (Collegiate Cyber Defense Competition) environments. It provides teams with essential capabilities to secure systems, detect vulnerabilities, and maintain operational awareness during competitions.
+Landschaft is a cross-platform cybersecurity tool designed for rapid system hardening, triage, and monitoring in CCDC (Collegiate Cyber Defense Competition) environments. It provides essential capabilities to secure systems, detect vulnerabilities, and maintain operational awareness during competitions.
 
 ## Features
 
