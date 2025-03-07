@@ -10,9 +10,9 @@ import (
 )
 
 func print_network_info() {
-	var hostname = print_hostname()
-	print_dnsname(hostname)
-	print_ip_addrs()
+	// var hostname = print_hostname()
+	// print_dnsname(hostname)
+	// print_ip_addrs()
 	print_netstat()
 }
 
@@ -82,7 +82,9 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	if len(sockets) > 0 {
 		fmt.Println(title)
 		for _, e := range sockets {
-			fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+			if e.State.String() == "LISTEN" && !strings.Contains(e.LocalAddr.String(), "127.0.0") {
+				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+			}
 		}
 	}
 }
