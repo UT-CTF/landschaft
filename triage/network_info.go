@@ -9,14 +9,14 @@ import (
 	"github.com/cakturk/go-netstat/netstat"
 )
 
-func print_network_info() {
-	var hostname = print_hostname()
-	print_dnsname(hostname)
-	print_ip_addrs()
-	print_netstat()
+func printNetworkInfo() {
+	var hostname = printHostname()
+	printDNSName(hostname)
+	printIPAddrs()
+	printNetstat()
 }
 
-func print_hostname() string {
+func printHostname() string {
 	var hostname, name_err = os.Hostname()
 	if name_err == nil {
 		fmt.Printf("Host Name: %s\n", hostname)
@@ -24,7 +24,7 @@ func print_hostname() string {
 	return hostname
 }
 
-func print_dnsname(hostname string) {
+func printDNSName(hostname string) {
 	addrs, err := net.LookupAddr(hostname)
 	if err != nil || len(addrs) == 0 {
 		fmt.Println("Error getting FQDN:", err)
@@ -34,7 +34,7 @@ func print_dnsname(hostname string) {
 	fmt.Printf("DNS Name: %s\n", strings.TrimSuffix(addrs[0], "."))
 }
 
-func print_ip_addrs() {
+func printIPAddrs() {
 	var interfaces, err = net.Interfaces()
 	if err != nil {
 		fmt.Printf("Error obtaining interfaces.\n")
@@ -64,12 +64,12 @@ func print_ip_addrs() {
 				ipv6_addrs = append(ipv6_addrs, ipNet.IP.String())
 			}
 		}
-		print_addrs(ipv4_addrs, "  IPv4 Addresses:")
-		print_addrs(ipv6_addrs, "  IPv6 Addresses:")
+		printAddr(ipv4_addrs, "  IPv4 Addresses:")
+		printAddr(ipv6_addrs, "  IPv6 Addresses:")
 	}
 }
 
-func print_addrs(list []string, msg string) {
+func printAddr(list []string, msg string) {
 	if len(list) > 0 {
 		fmt.Println("  ", msg)
 		for _, ip := range list {
@@ -87,7 +87,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	}
 }
 
-func print_netstat() {
+func printNetstat() {
 	// Get TCP IPv4 sockets
 	tcpSocks, err := netstat.TCPSocks(netstat.NoopFilter)
 	if err != nil {
