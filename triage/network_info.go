@@ -9,7 +9,7 @@ import (
 	"github.com/cakturk/go-netstat/netstat"
 )
 
-func print_network_info() {
+func printNetworkInfo() {
 	var hostname = printHostname()
 	printDNSName(hostname)
 	printIPAddrs()
