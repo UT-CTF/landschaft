@@ -10,16 +10,17 @@ import (
 )
 
 func printNetworkInfo() {
-	var hostname = printHostname()
+	var hostname = getHostname()
+	fmt.Printf("Host Name: %s\n", hostname)
 	printDNSName(hostname)
 	printIPAddrs()
 	printNetstat()
 }
 
-func printHostname() string {
+func getHostname() string {
 	var hostname, nameErr = os.Hostname()
-	if nameErr == nil {
-		fmt.Printf("Host Name: %s\n", hostname)
+	if nameErr != nil {
+		return "Error getting hostname"
 	}
 	return hostname
 }
@@ -82,7 +83,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	if len(sockets) > 0 {
 		fmt.Println(title)
 		for _, e := range sockets {
-			if e.State.String() == "LISTEN" && !strings.Contains(e.LocalAddr.String(), "127.0.0") {
+			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
 				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
 			}
 		}
