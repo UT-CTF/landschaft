@@ -16,7 +16,6 @@ func printNetworkInfo() {
 	printNetstat()
 }
 
-
 func getAndPrintHostname() string {
 	var hostname, nameErr = os.Hostname()
 	if nameErr != nil {
