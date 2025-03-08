@@ -10,18 +10,20 @@ import (
 )
 
 func runNetworkTriage() {
-	var hostname = printHostname()
+	var hostname = getAndPrintHostname()
 	printDNSName(hostname)
 	printIPAddrs()
 	printNetstat()
 	fmt.Println()
 }
 
-func printHostname() string {
-	var hostname, name_err = os.Hostname()
-	if name_err == nil {
-		fmt.Printf("Host Name: %s\n", hostname)
+func getAndPrintHostname() string {
+	var hostname, nameErr = os.Hostname()
+	if nameErr != nil {
+		fmt.Println("Error getting hostname")
+		return "Error getting hostname"
 	}
+	fmt.Printf("Host Name: %s\n", hostname)
 	return hostname
 }
 
@@ -47,12 +49,12 @@ func printIPAddrs() {
 			continue
 		}
 		fmt.Printf("Interface: %s\n", iface.Name)
-		var addrs, ip_err = iface.Addrs()
-		if ip_err != nil {
+		var addrs, ipErr = iface.Addrs()
+		if ipErr != nil {
 			fmt.Printf("Error obtaining IP addresses")
 			return
 		}
-		var ipv4_addrs, ipv6_addrs []string
+		var ipv4Addrs, ipv6Addrs []string
 		for _, addr := range addrs {
 			ipNet, ok := addr.(*net.IPNet)
 			if !ok {
@@ -60,17 +62,17 @@ func printIPAddrs() {
 				return
 			}
 			if ipNet.IP.To4() != nil {
-				ipv4_addrs = append(ipv4_addrs, ipNet.IP.String())
+				ipv4Addrs = append(ipv4Addrs, ipNet.IP.String())
 			} else {
-				ipv6_addrs = append(ipv6_addrs, ipNet.IP.String())
+				ipv6Addrs = append(ipv6Addrs, ipNet.IP.String())
 			}
 		}
-		printAddr(ipv4_addrs, "  IPv4 Addresses:")
-		printAddr(ipv6_addrs, "  IPv6 Addresses:")
+		printAddrs(ipv4Addrs, "  IPv4 Addresses:")
+		printAddrs(ipv6Addrs, "  IPv6 Addresses:")
 	}
 }
 
-func printAddr(list []string, msg string) {
+func printAddrs(list []string, msg string) {
 	if len(list) > 0 {
 		fmt.Println("  ", msg)
 		for _, ip := range list {
@@ -83,7 +85,9 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	if len(sockets) > 0 {
 		fmt.Println(title)
 		for _, e := range sockets {
-			fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
+				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+			}
 		}
 	}
 }
