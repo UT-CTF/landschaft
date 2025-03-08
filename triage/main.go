@@ -1,11 +1,10 @@
 package triage
 
-import (
-	"fmt"
-)
-
 func Run() {
-	fmt.Println("Running triage")
-	printNetworkInfo()
-	printTriageMessage()
+	// fmt.Println("Running triage")
+	// printNetworkInfo()
+	runUsersTriage()
+	runOSVersionTriage()
+	runFirewallTriage()
+	// printTriageMessage()
 }
