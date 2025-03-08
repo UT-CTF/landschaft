@@ -15,13 +15,13 @@ func getScriptsOS() ([]fs.DirEntry, error) {
 	return scripts.ReadDir("windows")
 }
 
-func executeScriptOS(scriptPath string) (string, error) {
+func executeScriptOS(scriptPath string, args string) (string, error) {
 	// Create a temporary file to execute
 	tmpFile, err := os.CreateTemp("", "script-*.ps1")
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
-	defer os.Remove(tmpFile.Name())
+	// defer os.Remove(tmpFile.Name())
 
 	// Read the embedded script
 	content, err := scripts.ReadFile("windows/" + scriptPath)
@@ -35,7 +35,7 @@ func executeScriptOS(scriptPath string) (string, error) {
 	}
 	tmpFile.Close()
 
-	cmd := exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-File", tmpFile.Name())
+	cmd := exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", tmpFile.Name(), args)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to execute script: %w", err)

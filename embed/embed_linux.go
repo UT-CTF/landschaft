@@ -15,7 +15,7 @@ func getScriptsOS() ([]fs.DirEntry, error) {
 	return scripts.ReadDir("unix")
 }
 
-func executeScriptOS(scriptPath string) (string, error) {
+func executeScriptOS(scriptPath string, args string) (string, error) {
 	// Create a temporary file to execute
 	tmpFile, err := os.CreateTemp("", "script-*.sh")
 	if err != nil {

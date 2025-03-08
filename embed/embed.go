@@ -18,6 +18,6 @@ func ListScripts() ([]string, error) {
 	return names, nil
 }
 
-func ExecuteScript(scriptPath string) (string, error) {
-	return executeScriptOS(scriptPath)
+func ExecuteScript(scriptPath string, args string) (string, error) {
+	return executeScriptOS(scriptPath, args)
 }
