@@ -25,10 +25,11 @@ jobs:
       with:
         go-version: ${{ matrix.version }}
 
-    - name: Build Linux
-      run: GOOS=linux go build -v .
+    - name: Build
+      run: go build -v .
 
-    - name: Build Windows
+    - name: Build (Cross Compile)
+      if: matrix.os == 'ubuntu-latest'
       run: GOOS=windows go build -v .
 
     - name: Test
