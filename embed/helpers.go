@@ -24,7 +24,7 @@ func extractEmbeddedDir(scriptDirectory string) (string, error) {
 	// Extract the directory containing the embedded script
 	embeddedDirPath := path.Join(scriptRootDir, scriptDirectory)
 
-	embeddedDir, err := os.ReadDir(embeddedDirPath)
+	embeddedDir, err := scriptsFS.ReadDir(embeddedDirPath)
 	if err != nil {
 		return "", fmt.Errorf("failed to read embedded scripts in %s: %w", embeddedDirPath, err)
 	}
@@ -36,7 +36,7 @@ func extractEmbeddedDir(scriptDirectory string) (string, error) {
 
 		// Read the script file's content
 		embeddedFilePath := path.Join(embeddedDirPath, embeddedDirEntry.Name())
-		file, err := os.Open(embeddedFilePath)
+		file, err := scriptsFS.Open(embeddedFilePath)
 		if err != nil {
 			return "", fmt.Errorf("failed to open embedded file %s: %w", embeddedFilePath, err)
 		}
