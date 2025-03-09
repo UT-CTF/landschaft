@@ -5,33 +5,38 @@ name: Go
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
   build:
     strategy:
-        matrix:
-          version: [ "1.23" ]
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+        version: ["1.23"]
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
     steps:
-    - uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-    - name: Set up Go
-      uses: actions/setup-go@v4
-      with:
-        go-version: ${{ matrix.version }}
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: ${{ matrix.version }}
 
-    - name: Build Linux
-      run: GOOS=linux go build -v .
+      - name: Build
+        run: go build -v .
 
-    - name: Build Windows
-      run: GOOS=windows go build -v .
+      - name: Build Windows (Cross Compile)
+        if: matrix.os == 'ubuntu-latest'
+        run: go build -v .
+        env:
+          GOOS: windows
 
-    - name: Test
-      run: go test -v .
-  
-    - name: Format
-      run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then gofmt -s -d .; exit 1; fi
+      - name: Test
+        run: go test -v ./...
+
+      - name: Format (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then gofmt -s -d .; exit 1; fi

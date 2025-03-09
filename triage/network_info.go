@@ -9,18 +9,21 @@ import (
 	"github.com/cakturk/go-netstat/netstat"
 )
 
-func printNetworkInfo() {
-	var hostname = printHostname()
+func runNetworkTriage() {
+	var hostname = getAndPrintHostname()
 	printDNSName(hostname)
 	printIPAddrs()
 	printNetstat()
+	fmt.Println()
 }
 
-func printHostname() string {
+func getAndPrintHostname() string {
 	var hostname, nameErr = os.Hostname()
-	if nameErr == nil {
-		fmt.Printf("Host Name: %s\n", hostname)
+	if nameErr != nil {
+		fmt.Println("Error getting hostname")
+		return "Error getting hostname"
 	}
+	fmt.Printf("Host Name: %s\n", hostname)
 	return hostname
 }
 
@@ -82,7 +85,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) {
 	if len(sockets) > 0 {
 		fmt.Println(title)
 		for _, e := range sockets {
-			if e.State.String() == "LISTEN" && !strings.Contains(e.LocalAddr.String(), "127.0.0") {
+			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
 				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
 			}
 		}
