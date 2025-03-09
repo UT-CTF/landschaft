@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func runUsersTriage(){
+func runUsersTriage() {
 	printUsers()
 	printGroups()
 }
