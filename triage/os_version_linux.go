@@ -21,9 +21,9 @@ func runOSVersionTriage() {
 		line := scanner.Text()
 		parts := strings.Split(line, "=")
 		if parts[0] == "NAME" {
-			fmt.Println("OS:", strings.Trim(parts[1],`"`))
+			fmt.Println("OS:", strings.Trim(parts[1], `"`))
 		} else if parts[0] == "VERSION" {
-			fmt.Println("Version:", strings.Trim(parts[1],`"`))
+			fmt.Println("Version:", strings.Trim(parts[1], `"`))
 		}
 	}
 }
