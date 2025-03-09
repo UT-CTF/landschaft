@@ -20,7 +20,7 @@ func takeBackup(path string, backupPath string) error {
 	basename := filepath.Base(path)
 	bkupNum := 0
 
-	err := filepath.Walk(HELPER, func(root string, info os.FileInfo, err error) error {
+	err := filepath.Walk(backupPath, func(root string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
@@ -41,14 +41,14 @@ func takeBackup(path string, backupPath string) error {
 	}
 
 	bkupNum++
-	helperPath := filepath.Join(HELPER, fmt.Sprintf("%s-%d", basename, bkupNum))
+	helperPath := filepath.Join(backupPath, fmt.Sprintf("%s-%d", basename, bkupNum))
 	err = copyFile(path, helperPath)
 	if err != nil {
 		return fmt.Errorf("error copying file: %v", err)
 	}
 
 	if bkupNum > 1 {
-		prevPath := filepath.Join(HELPER, fmt.Sprintf("%s-%d", basename, bkupNum-1))
+		prevPath := filepath.Join(backupPath, fmt.Sprintf("%s-%d", basename, bkupNum-1))
 		cmd := exec.Command("diff", "-s", helperPath, prevPath)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
