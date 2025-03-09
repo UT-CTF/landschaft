@@ -27,7 +27,7 @@ func ListScripts() ([]string, error) {
 //
 // Do not include the platform in the file path.
 // E.g. ExecuteScript("triage/script.sh") instead of ExecuteScript("linux/triage/script.sh")
-func ExecuteScript(scriptPath string) (string, error) {
+func ExecuteScript(scriptPath string, additionalArgs ...string) (string, error) {
 	tmpDir, err := extractEmbeddedDir(path.Dir(scriptPath))
 	if err != nil {
 		return "", fmt.Errorf("failed to extract embedded directory: %w", err)
@@ -36,8 +36,7 @@ func ExecuteScript(scriptPath string) (string, error) {
 
 	// Prepare command execution
 	fullScriptPath := path.Join(tmpDir, path.Base(scriptPath))
-	args := append(shellArgs, fullScriptPath)
-	cmd := exec.Command(shellName, args...)
+	cmd := exec.Command(shellName, getCommandArgs(fullScriptPath, additionalArgs...)...)
 	cmd.Dir = tmpDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {

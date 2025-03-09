@@ -18,3 +18,15 @@ func TestExecuteTestScript(t *testing.T) {
 		t.Errorf("Expected output %q, got %q", expected, strings.TrimSpace(output))
 	}
 }
+
+func TestExecuteArgsTestScript(t *testing.T) {
+	output, err := embed.ExecuteScript("test/args_test.ps1", "-TestArg", "Hello!")
+	if err != nil {
+		t.Fatalf("Failed to execute test script: %v", err)
+	}
+
+	expected := "Received argument: Hello!"
+	if strings.TrimSpace(output) != expected {
+		t.Errorf("Expected output %q, got %q", expected, strings.TrimSpace(output))
+	}
+}
