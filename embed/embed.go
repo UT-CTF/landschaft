@@ -8,7 +8,7 @@ import (
 )
 
 func ListScripts() ([]string, error) {
-	entries, err := readScriptDir(scriptRootDir)
+	entries, err := readScriptDir("")
 	if err != nil {
 		return nil, fmt.Errorf("failed to read embedded scripts: %w", err)
 	}

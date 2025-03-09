@@ -9,11 +9,12 @@ import (
 	"github.com/cakturk/go-netstat/netstat"
 )
 
-func printNetworkInfo() {
+func runNetworkTriage() {
 	var hostname = getAndPrintHostname()
 	printDNSName(hostname)
 	printIPAddrs()
 	printNetstat()
+	fmt.Println()
 }
 
 func getAndPrintHostname() string {
