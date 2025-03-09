@@ -38,6 +38,7 @@ func ExecuteScript(scriptPath string) (string, error) {
 	fullScriptPath := path.Join(tmpDir, path.Base(scriptPath))
 	args := append(shellArgs, fullScriptPath)
 	cmd := exec.Command(shellName, args...)
+	cmd.Dir = tmpDir
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to execute script: %w\nOutput: %s", err, string(output))
