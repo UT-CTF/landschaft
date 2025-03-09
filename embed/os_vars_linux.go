@@ -11,8 +11,11 @@ var scriptsFS embed.FS
 var (
 	scriptRootDir = "linux/"
 	shellName     = "bash"
-	shellArgs     = []string{}
 )
+
+func getCommandArgs(fullScriptPath string, additionalArgs ...string) []string {
+	return append([]string{fullScriptPath}, additionalArgs...)
+}
 
 func init() {
 	// Try to find bash in PATH
