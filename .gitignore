@@ -25,3 +25,6 @@ build/
 /.direnv
 /.envrc
 /flake.lock
+
+# script artifacts
+*.csv
