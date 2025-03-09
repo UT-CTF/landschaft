@@ -31,7 +31,7 @@ jobs:
       run: GOOS=windows go build -v .
 
     - name: Test
-      run: go test -v .
+      run: go test -v ./...
   
     - name: Format
       run: if [ "$(gofmt -s -l . | wc -l)" -gt 0 ]; then gofmt -s -d .; exit 1; fi
