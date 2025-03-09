@@ -1,1 +1,3 @@
-# Changing the CCDC Landscape
+# 🏞️ Landschaft
+
+> Changing the security landscape, one script at a time.
