@@ -21,7 +21,7 @@ func executeScriptOS(scriptPath string, args string) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("failed to create temp file: %w", err)
 	}
-	// defer os.Remove(tmpFile.Name())
+	defer os.Remove(tmpFile.Name())
 
 	// Read the embedded script
 	content, err := scripts.ReadFile("windows/" + scriptPath)
@@ -35,7 +35,7 @@ func executeScriptOS(scriptPath string, args string) (string, error) {
 	}
 	tmpFile.Close()
 
-	cmd := exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", tmpFile.Name(), args)
+	cmd := exec.Command("powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", fmt.Sprintf("%s %s", tmpFile.Name(), args))
 	output, err := cmd.CombinedOutput()
 	if err != nil {
 		return "", fmt.Errorf("failed to execute script: %w", err)
