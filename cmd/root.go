@@ -18,7 +18,7 @@ var rootCmd = &cobra.Command{
 	Use:   "landschaft",
 	Short: "A cybersecurity system tool",
 	Long: `Landschaft is a cross-platform cybersecurity tool designed for rapid system
-	hardening, triage, and monitoring.`,
+hardening, triage, and monitoring.`,
 	Version: fmt.Sprintf("%s (built: %s)", Version, BuildTime),
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
