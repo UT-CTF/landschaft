@@ -23,7 +23,6 @@ function Get-DomainInfo {
 function Get-UserInfo {
     $enabledUsers = @()
     $disabledUsers = @()
-
     $allUsers = Get-LocalUser
     foreach ($user in $allUsers) {
         if ($user.enabled) {
@@ -33,13 +32,11 @@ function Get-UserInfo {
             $disabledUsers += $user
         }
     }
-
     Write-Host "Users:"
     Write-Host "Enabled Local Users ($($enabledUsers.Length)):"
     foreach ($user in $enabledUsers) {
         Write-Host "`t$($user.name)"
     }
-
     Write-Host "Disabled Local Users: ($($disabledUsers.Length))"
     foreach ($user in $disabledUsers) {
         Write-Host "`t$($user.name)"
@@ -52,6 +49,7 @@ function Get-GroupInfo {
     $groupList = Get-LocalGroup
 
     foreach ($group in $groupList) {
+        Write-Host "Triaging Group: $($group.name)"
         $groupMembers = Get-LocalGroupMember -Group $group.name
         $members = @()
         $groupMembers | % {
