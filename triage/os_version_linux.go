@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-func printOSVersion() {
+func runOSVersionTriage() {
 	file, err := os.Open("/etc/os-release")
 	if err != nil {
 		fmt.Println("Error reading OS release:", err)
@@ -18,10 +18,11 @@ func printOSVersion() {
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
 		line := scanner.Text()
-		if strings.HasPrefix(line, "PRETTY_NAME=") {
-			fmt.Println("OS:", strings.Trim(line[12:], `"`))
-		} else if strings.HasPrefix(line, "VERSION=") {
-			fmt.Println("Version:", strings.Trim(line[9:], `"`))
+		parts := strings.Split(line, "=")
+		if parts[0] == "NAME" {
+			fmt.Println("OS:", strings.Trim(parts[1], `"`))
+		} else if parts[0] == "VERSION" {
+			fmt.Println("Version:", strings.Trim(parts[1], `"`))
 		}
 	}
 }
