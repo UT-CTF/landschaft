@@ -45,14 +45,10 @@ if check_firewalld; then
   higher_level_firewall=1
 fi
 
-echo
-
 if check_ufw; then
   found_firewall=1
   higher_level_firewall=1
 fi
-
-echo
 
 # Only check iptables if no higher-level firewall was found
 if [ $higher_level_firewall -eq 0 ]; then
