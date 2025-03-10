@@ -6,18 +6,15 @@ import (
 	"os"
 	"path"
 	"slices"
-	"strings"
 	"text/template"
+
+	"github.com/Masterminds/sprig/v3"
+	"github.com/jsimonetti/pwscheme/ssha"
 )
 
 var funcMap = template.FuncMap{
-	"fromCsv":  fromCsv,
-	"contains": Contains,
-}
-
-// Need to reverse the arguments
-func Contains(substr, s string) bool {
-	return strings.Contains(s, substr)
+	"fromCsv":            fromCsv,
+	"encodeLdifPassword": encodeLdifPassword,
 }
 
 var csvHeader []string
@@ -52,7 +49,7 @@ func generateLdif(templatePath string, csvPath string, outputPath string) error 
 	defer output.Close()
 
 	// Prepare template
-	t := template.New(path.Base(templatePath)).Funcs(funcMap)
+	t := template.New(path.Base(templatePath)).Funcs(funcMap).Funcs(sprig.FuncMap())
 	t, err = t.ParseFiles(templatePath)
 	if err != nil {
 		return fmt.Errorf("failed to parse template file: %v", err)
@@ -80,4 +77,14 @@ func fromCsv(colName string, row []string) (string, error) {
 	}
 
 	return row[idx], nil
+}
+
+func encodeLdifPassword(password string) string {
+	encodedPassword, err := ssha.Generate(password, 20)
+	if err != nil {
+		fmt.Printf("failed to encode password: %v", err)
+		return ""
+	}
+
+	return encodedPassword
 }

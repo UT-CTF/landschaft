@@ -4,7 +4,8 @@
 {{- $baseDn := "ou=Groups,dc=mydom,dc=com" -}}
 {{- /* Template */ -}}
 {{- range $_, $row := $data.CsvRows -}}
-{{- if fromCsv "Groups" $row | contains $groupName -}}
+{{- $csvGroups := fromCsv "Groups" $row -}}
+{{- if contains $groupName $csvGroups -}}
 dn: cn={{ $groupName }},{{ $baseDn }}
 changetype: modify
 add: memberUid
