@@ -53,14 +53,14 @@ func TestGenerateLdif(t *testing.T) {
 				t.Fatalf("Failed to generate LDIF: %v", err)
 			}
 
-			// Compare files, ignoring userPassword lines
+			// Compare files, validating userPassword format
 			compareFilesIgnorePasswords(t, tc.expectedFile, tmpFile.Name())
 		})
 	}
 }
 
-// compareFilesIgnorePasswords compares two files line by line, ignoring lines containing "userPassword:"
-// as these will have different values due to random salts used in password hashing
+// compareFilesIgnorePasswords compares two files line by line, validating that
+// userPassword lines start with {SSHA} and skipping comparison of the hash value
 func compareFilesIgnorePasswords(t *testing.T, expectedPath, actualPath string) {
 	expectedFile, err := os.Open(expectedPath)
 	if err != nil {
@@ -82,8 +82,12 @@ func compareFilesIgnorePasswords(t *testing.T, expectedPath, actualPath string) 
 		expectedLine := expectedScanner.Text()
 		actualLine := actualScanner.Text()
 
-		// Skip comparison for userPassword lines as they contain randomly generated salts
+		// Special handling for userPassword lines
 		if strings.Contains(expectedLine, "userPassword:") && strings.Contains(actualLine, "userPassword:") {
+			// Validate that the actual password uses SSHA format
+			if !strings.Contains(actualLine, "{SSHA}") {
+				t.Errorf("Line %d: userPassword is not using SSHA format: %s", lineNum, actualLine)
+			}
 			lineNum++
 			continue
 		}
