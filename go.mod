@@ -7,6 +7,8 @@ require (
 	github.com/spf13/cobra v1.9.1
 )
 
+require github.com/cakturk/go-netstat v0.0.0-20200220111822-e5b49efee7a5
+
 require (
 	github.com/gdamore/encoding v1.0.0 // indirect
 	github.com/gdamore/tcell/v2 v2.7.1 // indirect

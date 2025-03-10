@@ -15,7 +15,7 @@ var rotateLocalUsersCmd = &cobra.Command{
 	Use:   "rotate-local [file path]",
 	Short: "Rotate local user passwords",
 	Long: `Rotate local users passwords in two steps:
-"Generate" will generate a csv of all new passwords. 
+"Generate" will generate a csv of all new passwords.
 "Apply" will set all passwords to the new passwords.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		apply, err := cmd.Flags().GetBool("apply")
@@ -43,11 +43,16 @@ var rotateLocalUsersCmd = &cobra.Command{
 			fmt.Println("Error getting blacklist flag")
 			return
 		}
-		rotateLocalUsers(apply, generate, filePath, length, blacklist)
+		allowedCharacters, err := cmd.Flags().GetString("allowed-chars")
+		if err != nil {
+			fmt.Println("Error getting allowed-chars flag")
+			return
+		}
+		rotateLocalUsers(apply, generate, filePath, length, blacklist, allowedCharacters)
 	},
 }
 
-func rotateLocalUsers(apply bool, generate bool, filePath string, length uint, blacklist []string) {
+func rotateLocalUsers(apply bool, generate bool, filePath string, length uint, blacklist []string, allowedCharacters string) {
 	absPath, err := filepath.Abs(filePath)
 	if err != nil {
 		fmt.Println("Error getting absolute path")
@@ -64,11 +69,13 @@ func rotateLocalUsers(apply bool, generate bool, filePath string, length uint, b
 			fmt.Printf("Blacklisted users removed:\n%s\n", strings.Join(removed, "\n"))
 		}
 		fmt.Printf("Changing Passwords for %d users:\n%s\n", len(filtered), strings.Join(filtered, "\n"))
-		generatePasswordChangeCSV(filtered, length, absPath, true)
+		generatePasswordChangeCSV(filtered, length, absPath, true, allowedCharacters)
 	} else if apply {
 		applyPasswordChanges(absPath)
 	}
 }
+
+var defaultAllowedCharacters string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.?!+=:^()"
 
 func setupRotateLocalUsersCmd(cmd *cobra.Command) {
 	rotateLocalUsersCmd.Flags().Bool("apply", false, "Apply the new passwords to the users")
@@ -76,6 +83,7 @@ func setupRotateLocalUsersCmd(cmd *cobra.Command) {
 	rotateLocalUsersCmd.Flags().Uint("length", 16, "Length of the new passwords")
 	rotateLocalUsersCmd.Flags().StringSlice("blacklist", []string{}, fmt.Sprintf("Additional list of users to exclude from password rotation (default: %s)", strings.Join(defaultBlacklist, ", ")))
 	rotateLocalUsersCmd.Flags().StringP("file", "f", "", "File path to save the new passwords or read generated passwords (csv format)")
+	rotateLocalUsersCmd.Flags().String("allowed-chars", defaultAllowedCharacters, "Allowed characters for the new passwords")
 	rotateLocalUsersCmd.MarkFlagRequired("file")
 	rotateLocalUsersCmd.MarkFlagsMutuallyExclusive("apply", "generate")
 	rotateLocalUsersCmd.MarkFlagsOneRequired("apply", "generate")
@@ -96,14 +104,10 @@ func filterBlacklistedUsers(users []string, blacklist []string) ([]string, []str
 	return filteredUsers, removedUsers
 }
 
-func generatePasswordChangeCSV(users []string, length uint, filePath string, strict bool) {
+func generatePasswordChangeCSV(users []string, length uint, filePath string, strict bool, allowedCharacters string) {
 	passwords := make([]string, len(users))
 	for i := range passwords {
-		if strict {
-			passwords[i] = util.GenerateStrictRandomPassword(length)
-		} else {
-			passwords[i] = util.GenerateRandomPassword(length)
-		}
+		passwords[i] = util.GenerateRandomPassword(length, allowedCharacters, strict)
 	}
 
 	file, err := os.Create(filePath)
