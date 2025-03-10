@@ -10,15 +10,18 @@ import (
 // Strict mode means that the password must contain at least one lowercase letter,
 // one uppercase letter, one number, and one symbol.
 func GenerateRandomPassword(length uint, allowedCharacters string, strictMode bool) string {
-	randomPassword := make([]byte, length)
+	var randomPassword []byte
 	charsetLen := big.NewInt(int64(len(allowedCharacters)))
 
-	for i := range randomPassword {
-		n, err := rand.Int(rand.Reader, charsetLen)
-		if err != nil {
-			panic("failed to generate secure random number: " + err.Error())
+	for randomPassword == nil || (strictMode && !isValidPassword(string(randomPassword))) {
+		randomPassword = make([]byte, length)
+		for i := range randomPassword {
+			n, err := rand.Int(rand.Reader, charsetLen)
+			if err != nil {
+				panic("failed to generate secure random number: " + err.Error())
+			}
+			randomPassword[i] = allowedCharacters[n.Int64()]
 		}
-		randomPassword[i] = allowedCharacters[n.Int64()]
 	}
 	return string(randomPassword)
 }
