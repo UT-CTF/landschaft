@@ -1,0 +1,4 @@
+dn: cn=employees,ou=Groups,dc=mydom,dc=com
+changetype: modify
+add: memberUid
+memberUid: user2
