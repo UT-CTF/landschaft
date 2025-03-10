@@ -52,6 +52,7 @@ function Get-GroupInfo {
     $groupList = Get-LocalGroup
 
     foreach ($group in $groupList) {
+        Write-Host "Triaging Group: $($group.name)"
         $groupMembers = Get-LocalGroupMember -Group $group.name
         $members = @()
         $groupMembers | % {
