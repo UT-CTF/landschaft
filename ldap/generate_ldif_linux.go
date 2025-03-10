@@ -12,7 +12,12 @@ import (
 
 var funcMap = template.FuncMap{
 	"fromCsv":  fromCsv,
-	"contains": strings.Contains,
+	"contains": Contains,
+}
+
+// Need to reverse the arguments
+func Contains(substr, s string) bool {
+	return strings.Contains(s, substr)
 }
 
 var csvHeader []string

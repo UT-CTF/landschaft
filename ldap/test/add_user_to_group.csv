@@ -1,0 +1,4 @@
+User,Groups
+user1,contractors
+user2,employees
+user3,"employees,admins"
