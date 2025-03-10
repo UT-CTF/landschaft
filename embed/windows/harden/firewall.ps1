@@ -12,7 +12,6 @@ if (-not $Apply) {
 Write-Host "Backing up current rules to $BackupPath ..."
 netsh advfirewall export $BackupPath
 
-Write-Host "Removing existing inbound rules ..."
 $OldRules = Get-NetFirewallRule | ? { $_.Direction -eq "Inbound" }
 
 $rules = Get-Content $RulePath | ConvertFrom-Json
@@ -41,4 +40,5 @@ $rules | % {
     New-NetFirewallRule @params
 }
 
+Write-Host "Removing existing inbound rules ..."
 $OldRules | Remove-NetFirewallRule
