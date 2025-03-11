@@ -1,4 +1,4 @@
 package audit
 
-//placeholder
-func checkSSHD(){}
+// placeholder
+func checkSSHD() {}
