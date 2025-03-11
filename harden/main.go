@@ -7,7 +7,7 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupConfigureBashCmd(cmd)
+	setupConfigureShellCmd(cmd)
 	setupRotateLocalUsersCmd(cmd)
 }
 

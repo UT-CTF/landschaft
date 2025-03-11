@@ -52,11 +52,10 @@ func takeBackup(path string, backupPath string) error {
 		cmd := exec.Command("diff", "-s", helperPath, prevPath)
 		output, err := cmd.CombinedOutput()
 		if err != nil {
-			return fmt.Errorf("error running diff: %s", string(output))
+			err = fmt.Errorf("diff: %s", string(output))
 		}
 		fmt.Println(string(output))
 	}
-
 
 	return nil
 }
