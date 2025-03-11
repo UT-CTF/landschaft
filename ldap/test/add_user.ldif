@@ -1,0 +1,39 @@
+dn: uid=user1,ou=Users,dc=mydom,dc=com
+objectClass: account
+objectClass: posixAccount
+cn: John Doe
+givenName: John
+sn: Doe
+uid: user1
+uidNumber: 5000
+gidNumber: 10000
+homeDirectory: /home/user1
+loginShell: /bin/bash
+userPassword: {SSHA}6ziG/GvLf/dPOhXFau08KnE4WJyumJCIu+k8SnjIr8PpSNmwXWPAIA==
+
+dn: uid=user2,ou=Users,dc=mydom,dc=com
+objectClass: account
+objectClass: posixAccount
+cn: Jane Doe
+givenName: Jane
+sn: Doe
+uid: user2
+uidNumber: 5001
+gidNumber: 10000
+homeDirectory: /home/user2
+loginShell: /bin/bash
+userPassword: {SSHA}/YvbWp5qjNov4y0gDTFatBOTbFetGnmMAloanQYZCnF9wxxhbgFH1A==
+
+dn: uid=user3,ou=Users,dc=mydom,dc=com
+objectClass: account
+objectClass: posixAccount
+cn: Test User
+givenName: Test
+sn: User
+uid: user3
+uidNumber: 5002
+gidNumber: 10000
+homeDirectory: /home/user3
+loginShell: /bin/bash
+userPassword: {SSHA}mXEonApKdiZWtEmRFnO4TFQLhxdvrYmOqb6aZ3KnwZzgJq4NN1SpNw==
+
