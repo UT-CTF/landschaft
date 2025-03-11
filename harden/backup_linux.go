@@ -10,8 +10,6 @@ import (
 	"strings"
 )
 
-const HELPER = "helper"
-
 func takeBackup(path string, backupPath string) error {
 	if _, err := os.Stat(path); os.IsNotExist(err) {
 		return fmt.Errorf("'%s' does not exist", path)
