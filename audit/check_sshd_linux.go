@@ -17,7 +17,7 @@ func checkSSHD() {
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(sshd_config))
-	
+
 	fmt.Println("listing bad sshd_config rules:")
 	sshd_map := makeOutputMap()
 	for scanner.Scan() {
