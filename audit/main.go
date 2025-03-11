@@ -4,5 +4,5 @@ import "github.com/UT-CTF/landschaft/util"
 
 func Run() {
 	util.PrintSectionTitle("Check SSHD")
-	check_sshd()
+	checkSSHD()
 }
