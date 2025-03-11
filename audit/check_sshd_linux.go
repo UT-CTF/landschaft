@@ -17,20 +17,12 @@ func checkSSHD() {
 	}
 
 	scanner := bufio.NewScanner(bytes.NewReader(sshd_config))
-
-	// file, err := os.Open("/etc/ssh/sshd_config")
-	// if err != nil {
-	// 	fmt.Println("Error reading OS release:", err)
-	// 	return
-	// }
-	// defer file.Close()
-
-	// scanner := bufio.NewScanner(file)
-
+	
 	fmt.Println("listing bad sshd_config rules:")
 	sshd_map := makeOutputMap()
 	for scanner.Scan() {
 		line := strings.ToLower(scanner.Text())
+		line = strings.TrimRight(line, " \t\r\n")
 		ok := sshd_map[line]
 		if ok {
 			fmt.Println(line)
