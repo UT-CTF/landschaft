@@ -13,6 +13,7 @@ func checkSSHD() {
 	sshd_config, err := cmd.Output()
 	if err != nil {
 		fmt.Println("Error reading sshd_config release:", err)
+		fmt.Println("This could be caused by running w/o sudo")
 		return
 	}
 
@@ -23,26 +24,34 @@ func checkSSHD() {
 	for scanner.Scan() {
 		line := strings.ToLower(scanner.Text())
 		line = strings.TrimRight(line, " \t\r\n")
-		ok := sshd_map[line]
-		if ok {
+		fields := strings.Fields(line)
+		val, ok := sshd_map[fields[0]]
+		if ok && val == fields[1] {
 			fmt.Println(line)
-		}
-		arr := strings.Split(line, " ")
-		if arr[0] == "ciphers" {
-			checkCiphers(arr[1])
+		} else {
+			arr := strings.Split(line, " ")
+			if arr[0] == "ciphers" {
+				checkCiphers(arr[1])
+			} else if arr[0] == "protocol" {
+				checkProtocols(arr[1])
+			}
 		}
 	}
 }
 
-func makeOutputMap() map[string]bool {
-	sshdMap := map[string]bool{
-		"permitrootlogin yes":       true,
-		"permitemptypasswords yes":  true,
-		"x11forwarding yes":         true,
-		"ignorerhosts no":           true,
-		"permituserenvironment yes": true,
+func makeOutputMap() map[string]string {
+	sshdMap := map[string]string{
+		"permitrootlogin":       "yes",
+		"permitemptypasswords":  "yes",
+		"x11forwarding":         "yes",
+		"ignorerhosts":          "no",
+		"permituserenvironment": "yes",
 	}
 	return sshdMap
+}
+
+func checkProtocols(line string) bool {
+	return strings.Contains(line, "1")
 }
 
 func checkCiphers(line string) {
