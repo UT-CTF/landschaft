@@ -27,5 +27,6 @@ build/
 /flake.lock
 
 # script artifacts
-*.csv
-helper/
+/*.csv
+*.crt
+*.key

@@ -1,4 +1,4 @@
-package harden
+package baseline
 
 import (
 	"fmt"
@@ -7,9 +7,7 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupConfigureShellCmd(cmd)
-	setupRotateLocalUsersCmd(cmd)
-	setupFirewallCmd(cmd)
+	setupServicesCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {

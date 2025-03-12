@@ -1,27 +1,29 @@
 package util
 
 import (
-	"math/rand"
+	"crypto/rand"
+	"math/big"
 	"strings"
 	"unicode"
 )
 
-const allowedCharacters string = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_.?!+=:^()"
+// Strict mode means that the password must contain at least one lowercase letter,
+// one uppercase letter, one number, and one symbol.
+func GenerateRandomPassword(length uint, allowedCharacters string, strictMode bool) string {
+	var randomPassword []byte
+	charsetLen := big.NewInt(int64(len(allowedCharacters)))
 
-func GenerateRandomPassword(length uint) string {
-	randomPassword := make([]byte, length)
-	for i := range randomPassword {
-		randomPassword[i] = allowedCharacters[rand.Intn(len(allowedCharacters))]
+	for randomPassword == nil || (strictMode && !isValidPassword(string(randomPassword))) {
+		randomPassword = make([]byte, length)
+		for i := range randomPassword {
+			n, err := rand.Int(rand.Reader, charsetLen)
+			if err != nil {
+				panic("failed to generate secure random number: " + err.Error())
+			}
+			randomPassword[i] = allowedCharacters[n.Int64()]
+		}
 	}
 	return string(randomPassword)
-}
-
-func GenerateStrictRandomPassword(length uint) string {
-	password := GenerateRandomPassword(length)
-	for !isValidPassword(password) {
-		password = GenerateRandomPassword(length)
-	}
-	return password
 }
 
 func isValidPassword(password string) bool {
