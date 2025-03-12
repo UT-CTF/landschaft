@@ -45,22 +45,103 @@ func configureShell(filePath string, backupPath string, shellType string) {
 	}
 	defer file.Close()
 
-	_, err = file.WriteString("\nexport HISTFILE=\"" + absPath + "/.$USER\"")
-	if err != nil {
-		fmt.Println("Error writing to shell config file:", err)
-		return
-	}
-	_, err = file.WriteString("\nexport HISTTIMEFORMAT=\"%F %T \"\n")
-	if err != nil {
-		fmt.Println("Error writing to shell config file:", err)
-		return
-	}
-	_, err = file.WriteString("\nexport PROMPT_COMMAND=\"history -a;$PROMPT_COMMAND\"")
-	if err != nil {
-		fmt.Println("Error writing to shell config file:", err)
-		return
-	}
+	if shellType == "bash" {
 
+		// Mainly backup, feel free to ignore .bash_history
+		historyFile := absPath + "/.bash_history"
+		if _, err := os.Stat(historyFile); os.IsNotExist(err) {
+			file, err := os.Create(historyFile)
+			if err != nil {
+				fmt.Println("Error creating history file:", err)
+				return
+			}
+			file.Close()
+		}
+
+		err = os.Chmod(historyFile, 0622)
+		if err != nil {
+			fmt.Println("Error setting permissions on history file:", err)
+			return
+		}
+
+		logFile := absPath + "/.bash_log"
+		if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			file, err := os.Create(logFile)
+			if err != nil {
+				fmt.Println("Error creating log file:", err)
+				return
+			}
+			file.Close()
+		}
+		err = os.Chmod(logFile, 0622)
+		if err != nil {
+			fmt.Println("Error setting permissions on history file:", err)
+			return
+		}
+
+		_, err = file.WriteString("\nexport HISTFILE=\"" + historyFile + "\"")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+		_, err = file.WriteString("\nexport HISTTIMEFORMAT=\"%F %T \"\n")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+		_, err = file.WriteString("\nexport PROMPT_COMMAND=\"history -a; echo \\\"$(date) - $(whoami) - $(pwd) - $(history 1)\\\" >> " + logFile + "\"")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+	} else if shellType == "sh" {
+
+		logFile := absPath + "/.sh_log"
+		if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			file, err := os.Create(logFile)
+			if err != nil {
+				fmt.Println("Error creating log file:", err)
+				return
+			}
+			file.Close()
+		}
+
+		err = os.Chmod(logFile, 0622)
+		if err != nil {
+			fmt.Println("Error setting permissions on history file:", err)
+			return
+		}
+
+		/**
+		_, err = file.WriteString("\ntrap 'echo \"$(date +\"%Y-%m-%d %H:%M:%S\") $(whoami) $$ $(pwd) $(history 1)\" >> " + logFile + "' DEBUG")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+		*/
+
+		// This screws up the shell, and is more noticable. Also requires /etc/profile to be used.
+		// Will also log bash output
+
+		_, err = file.WriteString("\nexport PS4='$(date +\"%Y-%m-%d %H:%M:%S\") $(whoami) $$ $(pwd) '")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+
+		_, err = file.WriteString("\nset -x")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+
+		_, err = file.WriteString("\nexec 2>> /home/kali/CCDC/landschaft/test/.sh_log")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+
+	}
 	var cmd *exec.Cmd
 	if shellType == "bash" {
 		cmd = exec.Command("/bin/bash", "-c", "shopt -s histappend")
