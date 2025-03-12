@@ -9,7 +9,7 @@ import (
 var configureShellCmd = &cobra.Command{
 	Use:   "configure-shell",
 	Short: "Set up shell logging",
-	Long:  `Modify /etc/bash.bashrc to log all commands run by users to /var/log/commands.log`,
+	Long:  `Modify shell profile to log all commands run by users to <dir>/.bash_log or <dir>/.sh_log`,
 	Run: func(cmd *cobra.Command, args []string) {
 		filePath, err := cmd.Flags().GetString("file")
 		if err != nil {
