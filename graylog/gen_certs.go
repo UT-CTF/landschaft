@@ -13,14 +13,17 @@ import (
 )
 
 func genCerts() error {
-	return genCaCerts()
+	if err := genCaCerts(); err != nil {
+		return err
+	}
+	return genServerCerts("graylog.internal")
 }
 
 func genCaCerts() error {
 	// Define file paths for CA certificate and private key
 	certPath := "ca.crt"
 	keyPath := "ca.key"
-	bundlePath := "ca-bundle.crt"
+	bundlePath := "ca-bundle.key"
 
 	// Check if files already exist to prevent overwriting
 	if _, err := os.Stat(certPath); err == nil {
@@ -125,6 +128,160 @@ func genCaCerts() error {
 	err = pem.Encode(bundleFile, privateKeyBlock)
 	if err != nil {
 		return fmt.Errorf("failed to write private key to bundle file: %w", err)
+	}
+
+	return nil
+}
+
+func genServerCerts(hostname string) error {
+	// Define file paths
+	caKeyPath := "ca.key"
+	caCertPath := "ca.crt"
+	serverKeyPath := hostname + ".key"
+	serverCertPath := hostname + ".crt"
+	serverBundlePath := hostname + ".bundle.key"
+
+	// Check if files already exist to prevent overwriting
+	if _, err := os.Stat(serverCertPath); err == nil {
+		return fmt.Errorf("server certificate file already exists: %s", serverCertPath)
+	}
+	if _, err := os.Stat(serverKeyPath); err == nil {
+		return fmt.Errorf("server private key file already exists: %s", serverKeyPath)
+	}
+	if _, err := os.Stat(serverBundlePath); err == nil {
+		return fmt.Errorf("server bundle file already exists: %s", serverBundlePath)
+	}
+
+	// Read the CA certificate
+	caCertPEM, err := os.ReadFile(caCertPath)
+	if err != nil {
+		return fmt.Errorf("failed to read CA certificate: %w", err)
+	}
+	caCertBlock, _ := pem.Decode(caCertPEM)
+	if caCertBlock == nil {
+		return fmt.Errorf("failed to parse CA certificate PEM")
+	}
+	caCert, err := x509.ParseCertificate(caCertBlock.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse CA certificate: %w", err)
+	}
+
+	// Read the CA private key
+	caKeyPEM, err := os.ReadFile(caKeyPath)
+	if err != nil {
+		return fmt.Errorf("failed to read CA private key: %w", err)
+	}
+	caKeyBlock, _ := pem.Decode(caKeyPEM)
+	if caKeyBlock == nil {
+		return fmt.Errorf("failed to parse CA private key PEM")
+	}
+	caKey, err := x509.ParsePKCS8PrivateKey(caKeyBlock.Bytes)
+	if err != nil {
+		return fmt.Errorf("failed to parse CA private key: %w", err)
+	}
+	caPrivKey, ok := caKey.(*rsa.PrivateKey)
+	if !ok {
+		return fmt.Errorf("CA private key is not RSA")
+	}
+
+	// Generate server private key
+	serverPrivKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return fmt.Errorf("failed to generate server private key: %w", err)
+	}
+
+	// Create certificate template for server
+	serialNumber, err := rand.Int(rand.Reader, big.NewInt(1<<62))
+	if err != nil {
+		return fmt.Errorf("failed to generate serial number: %w", err)
+	}
+
+	template := x509.Certificate{
+		SerialNumber: serialNumber,
+		Subject: pkix.Name{
+			Organization: []string{"Landschaft"},
+			CommonName:   hostname,
+		},
+		NotBefore:             time.Now(),
+		NotAfter:              time.Now().AddDate(1, 0, 0), // Valid for 1 year
+		KeyUsage:              x509.KeyUsageDigitalSignature | x509.KeyUsageKeyEncipherment,
+		ExtKeyUsage:           []x509.ExtKeyUsage{x509.ExtKeyUsageServerAuth},
+		BasicConstraintsValid: true,
+		IsCA:                  false,
+		DNSNames:              []string{hostname},
+	}
+
+	// Create server certificate signed by CA
+	certBytes, err := x509.CreateCertificate(
+		rand.Reader,
+		&template,
+		caCert,
+		&serverPrivKey.PublicKey,
+		caPrivKey,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create server certificate: %w", err)
+	}
+
+	// Write server private key to file
+	keyFile, err := os.OpenFile(serverKeyPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to create server key file: %w", err)
+	}
+	defer keyFile.Close()
+
+	pkcs8Bytes, err := x509.MarshalPKCS8PrivateKey(serverPrivKey)
+	if err != nil {
+		return fmt.Errorf("failed to marshal server private key: %w", err)
+	}
+
+	err = pem.Encode(keyFile, &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: pkcs8Bytes,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to write server private key: %w", err)
+	}
+
+	// Write server certificate to file
+	certFile, err := os.OpenFile(serverCertPath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
+	if err != nil {
+		return fmt.Errorf("failed to create server certificate file: %w", err)
+	}
+	defer certFile.Close()
+
+	certBlock := &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: certBytes,
+	}
+
+	err = pem.Encode(certFile, certBlock)
+	if err != nil {
+		return fmt.Errorf("failed to write server certificate: %w", err)
+	}
+
+	// Write bundle file with both server certificate and private key
+	bundleFile, err := os.OpenFile(serverBundlePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	if err != nil {
+		return fmt.Errorf("failed to create server bundle file: %w", err)
+	}
+	defer bundleFile.Close()
+
+	// Write certificate to bundle first
+	err = pem.Encode(bundleFile, certBlock)
+	if err != nil {
+		return fmt.Errorf("failed to write certificate to server bundle file: %w", err)
+	}
+
+	// Then write private key to bundle
+	privateKeyBlock := &pem.Block{
+		Type:  "PRIVATE KEY",
+		Bytes: pkcs8Bytes,
+	}
+
+	err = pem.Encode(bundleFile, privateKeyBlock)
+	if err != nil {
+		return fmt.Errorf("failed to write private key to server bundle file: %w", err)
 	}
 
 	return nil
