@@ -33,6 +33,7 @@ function Get-UserInfo {
             $disabledUsers += $user
         }
     }
+
     Write-Host "Users:"
     Write-Host "Enabled Local Users ($($enabledUsers.Length)):"
     foreach ($user in $enabledUsers) {
