@@ -139,7 +139,7 @@ func genServerCerts(hostname string) error {
 	caCertPath := "ca.crt"
 	serverKeyPath := hostname + ".key"
 	serverCertPath := hostname + ".crt"
-	serverBundlePath := hostname + ".bundle.key"
+	serverBundlePath := hostname + ".bundle.crt"
 
 	// Check if files already exist to prevent overwriting
 	if _, err := os.Stat(serverCertPath); err == nil {
@@ -260,28 +260,26 @@ func genServerCerts(hostname string) error {
 		return fmt.Errorf("failed to write server certificate: %w", err)
 	}
 
-	// Write bundle file with both server certificate and private key
-	bundleFile, err := os.OpenFile(serverBundlePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0600)
+	// Write bundle file with both server certificate and CA certificate
+	bundleFile, err := os.OpenFile(serverBundlePath, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0644)
 	if err != nil {
 		return fmt.Errorf("failed to create server bundle file: %w", err)
 	}
 	defer bundleFile.Close()
 
-	// Write certificate to bundle first
+	// Write server certificate to bundle first
 	err = pem.Encode(bundleFile, certBlock)
 	if err != nil {
-		return fmt.Errorf("failed to write certificate to server bundle file: %w", err)
+		return fmt.Errorf("failed to write server certificate to bundle file: %w", err)
 	}
 
-	// Then write private key to bundle
-	privateKeyBlock := &pem.Block{
-		Type:  "PRIVATE KEY",
-		Bytes: pkcs8Bytes,
-	}
-
-	err = pem.Encode(bundleFile, privateKeyBlock)
+	// Then write CA certificate to bundle
+	err = pem.Encode(bundleFile, &pem.Block{
+		Type:  "CERTIFICATE",
+		Bytes: caCertBlock.Bytes,
+	})
 	if err != nil {
-		return fmt.Errorf("failed to write private key to server bundle file: %w", err)
+		return fmt.Errorf("failed to write CA certificate to bundle file: %w", err)
 	}
 
 	return nil
