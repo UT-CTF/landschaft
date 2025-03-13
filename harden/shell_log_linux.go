@@ -185,5 +185,7 @@ func configureShell(filePath string, backupPath string, shellType string) {
 		_, err = file.WriteString("PROMPT_COMMAND='RETRN_VAL=$?;logger -p local6.debug \"exec_command $(whoami) [$$]: $(history 1 | sed \"s/^[ ]*[0-9]\\+[ ]*//\" )\"'")
 		if err != nil {
 			fmt.Println("Error writing to shell config file:", err)
+		}
+	}
 	fmt.Println("Shell configured. Reload shell for changes to take effect.")
 }
