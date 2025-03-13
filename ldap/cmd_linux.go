@@ -16,6 +16,7 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 		outputPath   string
 		passwordLen  uint
 		allowedChars string
+		ldapArgs     []string
 	)
 
 	generatePasswordsCmd := &cobra.Command{
@@ -23,7 +24,7 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 		Short: "Generate a CSV file with usernames and new random passwords for LDAP users",
 		Long:  `Generate a CSV file with usernames and new random passwords for LDAP users. Will not overwrite existing files.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := GeneratePasswordsCSV(baseDn, outputPath, passwordLen, allowedChars)
+			err := GeneratePasswordsCSV(baseDn, outputPath, passwordLen, allowedChars, ldapArgs)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 				return
@@ -38,6 +39,8 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 	generatePasswordsCmd.Flags().UintVar(&passwordLen, "length", 16, "Length of generated passwords")
 	generatePasswordsCmd.Flags().StringVar(&allowedChars, "chars", defaultPasswordChars,
 		"Characters to use for password generation")
+	generatePasswordsCmd.Flags().StringArrayVar(&ldapArgs, "ldap-arg", []string{},
+		"Additional arguments to pass to ldapsearch (can be specified multiple times)")
 
 	generatePasswordsCmd.MarkFlagRequired("domain")
 

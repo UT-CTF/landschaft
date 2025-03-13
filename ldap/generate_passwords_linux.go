@@ -12,8 +12,14 @@ import (
 )
 
 // FindAllUsers finds all LDAP users using ldapsearch
-func FindAllUsers(baseDn string) ([]string, error) {
-	searchCmd := exec.Command("ldapsearch", "-x", "-LLL", "-b", baseDn, "(objectclass=posixAccount)")
+func FindAllUsers(baseDn string, extraArgs []string) ([]string, error) {
+	// Start with default arguments
+	args := []string{"-x", "-LLL", "-b", baseDn, "(objectclass=posixAccount)"}
+
+	// Append extra arguments if provided
+	args = append(args, extraArgs...)
+
+	searchCmd := exec.Command("ldapsearch", args...)
 	output, err := searchCmd.CombinedOutput()
 	if err != nil {
 		// Include the command output in the error message
@@ -35,7 +41,7 @@ func FindAllUsers(baseDn string) ([]string, error) {
 }
 
 // GeneratePasswordsCSV generates random passwords for all users and writes to a CSV file
-func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowedChars string) error {
+func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowedChars string, extraArgs []string) error {
 	// Check if file already exists
 	if _, err := os.Stat(outputPath); err == nil {
 		return fmt.Errorf("output file %s already exists, refusing to overwrite", outputPath)
@@ -50,7 +56,7 @@ func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowe
 	}
 
 	// Find all users
-	users, err := FindAllUsers(baseDn)
+	users, err := FindAllUsers(baseDn, extraArgs)
 	if err != nil {
 		return err
 	}
