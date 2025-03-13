@@ -26,6 +26,7 @@ func configureShell(filePath string, backupPath string, shellType string) {
 	if shellType == "bash" {
 		shellConfigFile = "/etc/bash.bashrc"
 	} else if shellType == "sh" {
+		fmt.Println("sh shell type experimental. Use at your own risk.")
 		shellConfigFile = "/etc/profile"
 	} else if shellType == "ssh" {
 		shellConfigFile = "/etc/ssh/sshd_config"
