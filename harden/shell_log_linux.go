@@ -29,6 +29,8 @@ func configureShell(filePath string, backupPath string, shellType string) {
 		shellConfigFile = "/etc/profile"
 	} else if shellType == "ssh" {
 		shellConfigFile = "/etc/ssh/sshd_config"
+	} else if shellType == "logger" {
+		shellConfigFile = "/etc/environment"
 	} else {
 		fmt.Println("Unsupported shell type")
 		return
@@ -91,9 +93,16 @@ func configureShell(filePath string, backupPath string, shellType string) {
 			fmt.Println("Error writing to shell config file:", err)
 			return
 		}
-		_, err = file.WriteString("\nexport PROMPT_COMMAND=\"history -a; echo \\\"$(date) - $(whoami) - $(pwd) - $(history 1)\\\" >> " + logFile + "\"")
+		_, err = file.WriteString("\nexport PROMPT_COMMAND=\"history -a; echo \\\"$(date) - $(whoami) - $(pwd) - $(history 1)\\\" >> " + logFile + "; $PROMPT_COMMAND\"")
 		if err != nil {
 			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
+
+		var cmd *exec.Cmd = exec.Command("/bin/bash", "-c", "shopt -s histappend")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error configuring shell:", string(output))
 			return
 		}
 	} else if shellType == "sh" {
@@ -143,6 +152,13 @@ func configureShell(filePath string, backupPath string, shellType string) {
 			return
 		}
 
+		var cmd *exec.Cmd = exec.Command("/bin/sh", "-c", "set -o history")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error configuring shell:", string(output))
+			return
+		}
+
 	} else if shellType == "ssh" {
 		logFile := absPath + "/.ssh_log"
 		if _, err := os.Stat(logFile); os.IsNotExist(err) {
@@ -165,23 +181,9 @@ func configureShell(filePath string, backupPath string, shellType string) {
 			fmt.Println("Error writing to shell config file:", err)
 			return
 		}
-	}
-	var cmd *exec.Cmd
-	if shellType == "bash" {
-		cmd = exec.Command("/bin/bash", "-c", "shopt -s histappend")
-		output, err := cmd.CombinedOutput()
+	} else if shellType == "logger" {
+		_, err = file.WriteString("PROMPT_COMMAND='RETRN_VAL=$?;logger -p local6.debug \"exec_command $(whoami) [$$]: $(history 1 | sed \"s/^[ ]*[0-9]\\+[ ]*//\" )\"'")
 		if err != nil {
-			fmt.Println("Error configuring shell:", string(output))
-			return
-		}
-	} else if shellType == "sh" {
-		cmd = exec.Command("/bin/sh", "-c", "set -o history")
-		output, err := cmd.CombinedOutput()
-		if err != nil {
-			fmt.Println("Error configuring shell:", string(output))
-			return
-		}
-	}
-
+			fmt.Println("Error writing to shell config file:", err)
 	fmt.Println("Shell configured. Reload shell for changes to take effect.")
 }
