@@ -33,7 +33,7 @@ var configureShellCmd = &cobra.Command{
 
 func setupConfigureShellCmd(cmd *cobra.Command) {
 	configureShellCmd.Flags().StringP("file", "f", "/dev/shm/", "Directory path to log to")
-	configureShellCmd.Flags().StringP("backup", "b", "helper", "Backup directory")
-	configureShellCmd.Flags().StringP("shell", "s", "bash", "Shell type (bash or sh)")
+	configureShellCmd.Flags().StringP("backup", "b", "backup", "Backup directory")
+	configureShellCmd.Flags().StringP("shell", "s", "bash", "Shell type (bash, sh, ssh)")
 	cmd.AddCommand(configureShellCmd)
 }
