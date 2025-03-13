@@ -27,6 +27,8 @@ func configureShell(filePath string, backupPath string, shellType string) {
 		shellConfigFile = "/etc/bash.bashrc"
 	} else if shellType == "sh" {
 		shellConfigFile = "/etc/profile"
+	} else if shellType == "ssh" {
+		shellConfigFile = "/etc/ssh/sshd_config"
 	} else {
 		fmt.Println("Unsupported shell type")
 		return
@@ -135,24 +137,50 @@ func configureShell(filePath string, backupPath string, shellType string) {
 			return
 		}
 
-		_, err = file.WriteString("\nexec 2>> /home/kali/CCDC/landschaft/test/.sh_log")
+		_, err = file.WriteString("\nexec 2>> " + logFile)
 		if err != nil {
 			fmt.Println("Error writing to shell config file:", err)
 			return
 		}
 
+	} else if shellType == "ssh" {
+		logFile := absPath + "/.ssh_log"
+		if _, err := os.Stat(logFile); os.IsNotExist(err) {
+			file, err := os.Create(logFile)
+			if err != nil {
+				fmt.Println("Error creating log file:", err)
+				return
+			}
+			file.Close()
+		}
+
+		err = os.Chmod(logFile, 0622)
+		if err != nil {
+			fmt.Println("Error setting permissions on history file:", err)
+			return
+		}
+
+		_, err = file.WriteString("\nMatch all\n\tForceCommand /bin/bash -c 'echo \"$(date) - $(whoami) - $(pwd) - $SSH_CONNECTION - $(history 1)\" >> " + logFile + "; exec bash'")
+		if err != nil {
+			fmt.Println("Error writing to shell config file:", err)
+			return
+		}
 	}
 	var cmd *exec.Cmd
 	if shellType == "bash" {
 		cmd = exec.Command("/bin/bash", "-c", "shopt -s histappend")
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error configuring shell:", string(output))
+			return
+		}
 	} else if shellType == "sh" {
 		cmd = exec.Command("/bin/sh", "-c", "set -o history")
-	}
-
-	output, err := cmd.CombinedOutput()
-	if err != nil {
-		fmt.Println("Error configuring shell:", string(output))
-		return
+		output, err := cmd.CombinedOutput()
+		if err != nil {
+			fmt.Println("Error configuring shell:", string(output))
+			return
+		}
 	}
 
 	fmt.Println("Shell configured. Reload shell for changes to take effect.")
