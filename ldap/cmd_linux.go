@@ -12,7 +12,7 @@ const defaultPasswordChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWX
 // setupGeneratePasswordsCmd adds the generate-passwords subcommand
 func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 	var (
-		domain       string
+		baseDn       string
 		outputPath   string
 		passwordLen  uint
 		allowedChars string
@@ -23,7 +23,7 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 		Short: "Generate a CSV file with usernames and new random passwords for LDAP users",
 		Long:  `Generate a CSV file with usernames and new random passwords for LDAP users. Will not overwrite existing files.`,
 		Run: func(cmd *cobra.Command, args []string) {
-			err := GeneratePasswordsCSV(domain, outputPath, passwordLen, allowedChars)
+			err := GeneratePasswordsCSV(baseDn, outputPath, passwordLen, allowedChars)
 			if err != nil {
 				fmt.Printf("Error: %v\n", err)
 				return
@@ -33,7 +33,7 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 	}
 
 	// Add flags
-	generatePasswordsCmd.Flags().StringVarP(&domain, "domain", "d", "", "LDAP domain (base DN)")
+	generatePasswordsCmd.Flags().StringVarP(&baseDn, "domain", "d", "", "Base DN (e.g. ou=Users,dc=mydom,dc=com)")
 	generatePasswordsCmd.Flags().StringVar(&outputPath, "output", "new_ldap_passwords.csv", "Path to output CSV file")
 	generatePasswordsCmd.Flags().UintVar(&passwordLen, "length", 16, "Length of generated passwords")
 	generatePasswordsCmd.Flags().StringVar(&allowedChars, "chars", defaultPasswordChars,
