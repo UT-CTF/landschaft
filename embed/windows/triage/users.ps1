@@ -14,9 +14,29 @@ function Get-DomainInfo {
     if ($domainJoined) {
         Write-Host "This machine is joined to a domain."
         Write-Host "Domain: $domain"
+        if ((Get-WmiObject -Class Win32_ComputerSystem).DomainRole -eq 5) {
+            Write-Host "This machine is a domain controller."
+            return $true
+        }
     }
     else {
         Write-Host "This machine is not joined to a domain."
+    }
+    return $false
+}
+
+function Get-ADUserInfo {
+    Write-Host "Users:"
+    $users = Get-ADUser -Filter {Enabled -eq $true}
+    Write-Host "Enabled AD Users ($($users.Length)):"
+    foreach ($user in $users) {
+        Write-Host "`t$($user.name)"
+    }
+
+    $users = Get-ADUser -Filter {Enabled -eq $false}
+    Write-Host "Disabled AD Users ($($users.Length)):"
+    foreach ($user in $users) {
+        Write-Host "`t$($user.name)"
     }
 }
 
@@ -46,13 +66,38 @@ function Get-UserInfo {
     }
 }
 
+function Get-ADGroupInfo {
+    Write-Host "Groups:"
+
+    $groupList = Get-ADGroup -Filter * -Properties *
+
+    foreach ($group in $groupList) {
+        
+        $members = @()
+        $group | Get-ADGroupMember | ? { $_.objectClass -eq "User" } | % {$members += $_.name}
+        $memberof = $group | Select-Object -expandproperty memberof | Get-ADObject | % {$_.Name}
+        
+        if ($members.Length -gt 0) {
+            Write-Host "$($group.name) ($($members.Length)): "
+            $printlist = $members | Select-Object -First 10
+            $printlist | % { Write-Host "`t$($_)" }
+            if ($members.Length -gt 10) {
+                Write-Host "`t... and $($members.Length - 10) more"
+            }
+            Write-Host "Member Of:"
+            $memberof | % { Write-Host "`t$($_)" }
+            Write-Host
+        }
+    }
+}
+
 function Get-GroupInfo {
     Write-Host "Groups:"
 
     $groupList = Get-LocalGroup
 
     foreach ($group in $groupList) {
-        Write-Host "Triaging Group: $($group.name)"
+        # Write-Host "Triaging Group: $($group.name)"
         $groupMembers = Get-LocalGroupMember -Group $group.name
         $members = @()
         $groupMembers | % {
@@ -70,12 +115,14 @@ function Get-GroupInfo {
 }
 
 
-Get-DomainInfo
+$isdc = Get-DomainInfo
 
 Write-Divider
 
-Get-UserInfo
+if ($isdc) { Get-ADUserInfo }
+else { Get-UserInfo }
 
 Write-Divider
 
-Get-GroupInfo
+if($isdc) { Get-ADGroupInfo }
+else { Get-GroupInfo }
