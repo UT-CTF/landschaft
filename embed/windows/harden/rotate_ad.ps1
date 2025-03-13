@@ -10,6 +10,6 @@ foreach ($line in $lines) {
     $user = $parts[0]
     $pass = $parts[1]
     $secstring = ConvertTo-SecureString $pass -AsPlainText -Force
-    Set-ADAccountPasswored -Identity $user -NewPassword $secstring
+    Set-ADAccountPassword -Identity $user -NewPassword $secstring
     Write-Host "Rotated password for $user"
 }

@@ -7,7 +7,7 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupRotateLocalUsersCmd(cmd)
+	setupRotatePwdCmd(cmd)
 	setupFirewallCmd(cmd)
 }
 
