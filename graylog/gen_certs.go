@@ -12,7 +12,11 @@ import (
 	"time"
 )
 
-func genCa() error {
+func genCerts() error {
+	return genCaCerts()
+}
+
+func genCaCerts() error {
 	// Define file paths for CA certificate and private key
 	certPath := "ca.crt"
 	keyPath := "ca.key"
