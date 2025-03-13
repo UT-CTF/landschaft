@@ -23,6 +23,7 @@ function Get-DomainInfo {
 function Get-UserInfo {
     $enabledUsers = @()
     $disabledUsers = @()
+
     $allUsers = Get-LocalUser
     foreach ($user in $allUsers) {
         if ($user.enabled) {
