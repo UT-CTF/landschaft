@@ -12,7 +12,7 @@ import (
 )
 
 // FindAllUsers finds all LDAP users using ldapsearch
-func FindAllUsers(baseDn string, extraArgs []string) ([]string, error) {
+func FindAllUsers(baseDn string, extraArgs []string, excludedUsers []string) ([]string, error) {
 	// Start with default arguments
 	args := []string{"-x", "-LLL", "-b", baseDn, "(objectclass=posixAccount)"}
 
@@ -26,6 +26,18 @@ func FindAllUsers(baseDn string, extraArgs []string) ([]string, error) {
 		return nil, fmt.Errorf("failed to execute ldapsearch: %v\nCommand output:\n%s", err, output)
 	}
 
+	// Always exclude these users
+	alwaysExcluded := map[string]bool{
+		"blackteam": true,
+		"root":      true,
+	}
+
+	// Add user-provided exclusions
+	userExcluded := make(map[string]bool)
+	for _, user := range excludedUsers {
+		userExcluded[user] = true
+	}
+
 	var users []string
 	lines := strings.Split(string(output), "\n")
 	for _, line := range lines {
@@ -33,6 +45,12 @@ func FindAllUsers(baseDn string, extraArgs []string) ([]string, error) {
 			// Extract the username between "uid=" and the comma
 			uidPart := strings.Split(line, ",")[0]
 			username := strings.TrimPrefix(uidPart, "dn: uid=")
+
+			// Skip excluded users
+			if alwaysExcluded[username] || userExcluded[username] {
+				continue
+			}
+
 			users = append(users, username)
 		}
 	}
@@ -41,7 +59,7 @@ func FindAllUsers(baseDn string, extraArgs []string) ([]string, error) {
 }
 
 // GeneratePasswordsCSV generates random passwords for all users and writes to a CSV file
-func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowedChars string, extraArgs []string) error {
+func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowedChars string, extraArgs []string, excludedUsers []string) error {
 	// Check if file already exists
 	if _, err := os.Stat(outputPath); err == nil {
 		return fmt.Errorf("output file %s already exists, refusing to overwrite", outputPath)
@@ -56,7 +74,7 @@ func GeneratePasswordsCSV(baseDn, outputPath string, passwordLength uint, allowe
 	}
 
 	// Find all users
-	users, err := FindAllUsers(baseDn, extraArgs)
+	users, err := FindAllUsers(baseDn, extraArgs, excludedUsers)
 	if err != nil {
 		return err
 	}
