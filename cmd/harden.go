@@ -16,6 +16,5 @@ var hardenCmd = &cobra.Command{
 
 func init() {
 	harden.SetupCommand(hardenCmd)
-
 	rootCmd.AddCommand(hardenCmd)
 }
