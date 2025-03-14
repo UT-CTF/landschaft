@@ -26,6 +26,11 @@ func GenerateRandomPassword(length uint, allowedCharacters string, strictMode bo
 	return string(randomPassword)
 }
 
+func GenerateRandomDefaultPassword(length uint) string {
+	allowedCharacters := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_!"
+	return GenerateRandomPassword(length, allowedCharacters, true)
+}
+
 func isValidPassword(password string) bool {
 	hasLower, hasUpper, hasNumber, hasSymbol := false, false, false, false
 
