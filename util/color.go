@@ -6,10 +6,11 @@ import (
 )
 
 var (
-	Purple     = lipgloss.Color("99")
-	Gray       = lipgloss.Color("245")
-	LightGray  = lipgloss.Color("241")
-	ErrorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
+	Purple      = lipgloss.Color("99")
+	PurpleStyle = lipgloss.NewStyle().Foreground(Purple)
+	Gray        = lipgloss.Color("245")
+	LightGray   = lipgloss.Color("241")
+	ErrorStyle  = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 
 	TitleColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#fdc981")).Underline(true)
 	headerStyle = lipgloss.NewStyle().
