@@ -39,7 +39,7 @@ func addLocalAdmin(username string) {
 		fmt.Println("Error with passwd:", err)
 	}
 
-	fmt.Printf("Successfully added: %s!\n", username)
+	fmt.Printf("Successfully added: %s\n", username)
 }
 
 func runCommand(cmd *exec.Cmd) error {
