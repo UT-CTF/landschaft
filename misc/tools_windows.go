@@ -31,6 +31,15 @@ var firefoxCmd = &cobra.Command{
 	},
 }
 
+var nxlogCmd = &cobra.Command{
+	Use:                   "nxlog",
+	Args:                  cobra.ExactArgs(0),
+	DisableFlagsInUseLine: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		installNxlog()
+	},
+}
+
 var toolsGroup = &cobra.Group{
 	ID:    "tools",
 	Title: "Commands for installing tools",
@@ -39,6 +48,7 @@ var toolsGroup = &cobra.Group{
 var toolCommands = []*cobra.Command{
 	sysinternalsCmd,
 	firefoxCmd,
+	nxlogCmd,
 }
 
 func setupToolsCommand(cmd *cobra.Command) {
@@ -104,6 +114,38 @@ func installFirefox() {
 	}
 
 	fmt.Println("Firefox installed successfully")
+}
+
+func installNxlog() {
+	url := "https://dl.nxlog.co/dl/67d467c203d54"
+	data, err := downloadData(url)
+	if err != nil {
+		fmt.Println("Error downloading Nxlog: ", err)
+		return
+	}
+
+	installFile, err := os.CreateTemp("", "nxlog-*.msi")
+	if err != nil {
+		fmt.Println("Error creating temporary file: ", err)
+		return
+	}
+
+	_, err = installFile.Write(data)
+	if err != nil {
+		fmt.Println("Error writing data to file: ", err)
+		return
+	}
+	installFile.Close()
+	defer os.Remove(installFile.Name())
+
+	cmd := exec.Command("msiexec", "/i", installFile.Name(), "/quiet")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error running installer: ", err)
+		return
+	}
+
+	fmt.Println("Nxlog installed successfully")
 }
 
 func downloadData(url string) ([]byte, error) {
