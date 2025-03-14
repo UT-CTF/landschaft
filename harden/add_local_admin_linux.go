@@ -5,8 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-
-	"github.com/spf13/cobra"
 )
 
 func addLocalAdmin(username string) {
