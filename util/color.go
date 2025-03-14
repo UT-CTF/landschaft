@@ -7,6 +7,7 @@ import (
 
 var (
 	Purple     = lipgloss.Color("99")
+	PurpleStyle = lipgloss.NewStyle().Foreground(Purple)
 	Gray       = lipgloss.Color("245")
 	LightGray  = lipgloss.Color("241")
 	ErrorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
