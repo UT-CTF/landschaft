@@ -8,6 +8,8 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
+	setupConfigureShellCmd(cmd)
+	setupRotateLocalUsersCmd(cmd)
 	setupRotatePwdCmd(cmd)
 	setupFirewallCmd(cmd)
 	setupAddLocalAdminCmd(cmd)
