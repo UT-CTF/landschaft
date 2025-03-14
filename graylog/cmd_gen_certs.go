@@ -1,8 +1,7 @@
 package graylog
 
 import (
-	"fmt"
-
+	"github.com/charmbracelet/log"
 	"github.com/spf13/cobra"
 )
 
@@ -11,7 +10,7 @@ var genCertsCmd = &cobra.Command{
 	Short: "Generate certs for graylog",
 	Run: func(cmd *cobra.Command, args []string) {
 		if err := genCerts(); err != nil {
-			fmt.Printf("Error: %v\n", err)
+			log.Error("Failed to generate cert:", "err", err)
 		}
 	},
 }
