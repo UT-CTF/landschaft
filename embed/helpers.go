@@ -10,8 +10,32 @@ import (
 	"strings"
 )
 
-func readScriptDir(directory string) ([]fs.DirEntry, error) {
+func ReadScriptDir(directory string) ([]fs.DirEntry, error) {
 	return scriptsFS.ReadDir(path.Join(scriptRootDir, directory))
+}
+
+func ExtractFile(scriptPath string, targetPath string) {
+	file, err := scriptsFS.Open(path.Join(scriptRootDir, scriptPath))
+	if err != nil {
+		fmt.Println("Error opening embedded file: ", err)
+		return
+	}
+	defer file.Close()
+
+	reader := bufio.NewReader(file)
+
+	targetFile, err := os.Create(targetPath)
+	if err != nil {
+		fmt.Println("Error creating target file: ", err)
+		return
+	}
+	defer targetFile.Close()
+
+	_, err = io.Copy(targetFile, reader)
+	if err != nil {
+		fmt.Println("Error copying file: ", err)
+		return
+	}
 }
 
 func extractEmbeddedDir(scriptDirectory string) (string, error) {

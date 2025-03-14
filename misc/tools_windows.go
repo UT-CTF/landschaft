@@ -7,44 +7,50 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"os/exec"
 	"path/filepath"
 
 	"github.com/spf13/cobra"
 )
 
-var toolsDict = map[string]func(){
-	"sysinternals": installSysinternals,
-	"python":       installPython,
-	"firefox":      installFirefox,
-}
-
-var targetDir = ""
-
-func getValidKeys(dict map[string]func()) []string {
-	keys := make([]string, 0, len(dict))
-	for k := range dict {
-		keys = append(keys, k)
-	}
-	return keys
-}
-
-var toolsCmd = &cobra.Command{
-	Use:       "tools",
-	Short:     "Install various tools",
-	Args:      cobra.MatchAll(cobra.ExactArgs(1), cobra.OnlyValidArgs),
-	ValidArgs: getValidKeys(toolsDict),
+var sysinternalsCmd = &cobra.Command{
+	Use:                   "sysinternals [target-directory]",
+	Args:                  cobra.ExactArgs(1),
+	DisableFlagsInUseLine: true,
 	Run: func(cmd *cobra.Command, args []string) {
-		toolsDict[args[0]]()
+		installSysinternals(args[0])
 	},
 }
 
-func setupToolsCommand(cmd *cobra.Command) {
-	toolsCmd.Flags().StringVarP(&targetDir, "dir", "d", "", "Target directory to install tools")
-
-	cmd.AddCommand(toolsCmd)
+var firefoxCmd = &cobra.Command{
+	Use:                   "firefox",
+	Args:                  cobra.ExactArgs(0),
+	DisableFlagsInUseLine: true,
+	Run: func(cmd *cobra.Command, args []string) {
+		installFirefox()
+	},
 }
 
-func installSysinternals() {
+var toolsGroup = &cobra.Group{
+	ID:    "tools",
+	Title: "Commands for installing tools",
+}
+
+var toolCommands = []*cobra.Command{
+	sysinternalsCmd,
+	firefoxCmd,
+}
+
+func setupToolsCommand(cmd *cobra.Command) {
+	cmd.AddGroup(toolsGroup)
+
+	for _, toolCmd := range toolCommands {
+		toolCmd.GroupID = toolsGroup.ID
+		cmd.AddCommand(toolCmd)
+	}
+}
+
+func installSysinternals(targetDir string) {
 	if len(targetDir) == 0 {
 		fmt.Println("Error: No target directory specified")
 		return
@@ -59,13 +65,45 @@ func installSysinternals() {
 	}
 
 	extractZip(zipData, targetDir)
+
+	fmt.Println("Sysinternals Suite installed successfully")
 }
 
-func installPython() {
-	fmt.Println("Not implemented")
-}
+// func installPython() {
+// 	fmt.Println("Not implemented")
+// }
 
 func installFirefox() {
+	url := "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US"
+
+	data, err := downloadData(url)
+	if err != nil {
+		fmt.Println("Error downloading Firefox: ", err)
+		return
+	}
+
+	installFile, err := os.CreateTemp("", "firefox-*.exe")
+	if err != nil {
+		fmt.Println("Error creating temporary file: ", err)
+		return
+	}
+
+	_, err = installFile.Write(data)
+	if err != nil {
+		fmt.Println("Error writing data to file: ", err)
+		return
+	}
+	installFile.Close()
+	defer os.Remove(installFile.Name())
+
+	cmd := exec.Command(installFile.Name(), "/silent")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error running installer: ", err)
+		return
+	}
+
+	fmt.Println("Firefox installed successfully")
 }
 
 func downloadData(url string) ([]byte, error) {

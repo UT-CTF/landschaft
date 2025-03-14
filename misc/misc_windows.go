@@ -8,6 +8,7 @@ import (
 
 func SetupCommand(cmd *cobra.Command) {
 	setupToolsCommand(cmd)
+	setupExtractCommand(cmd)
 }
 
 func Run(cmd *cobra.Command) {

@@ -1,11 +1,17 @@
 package misc
 
-import "github.com/spf13/cobra"
+import (
+	"fmt"
+
+	"github.com/spf13/cobra"
+)
 
 func SetupCommand(cmd *cobra.Command) {
-	// placeholder
+	setupExtractCommand(cmd)
 }
 
 func Run(cmd *cobra.Command) {
-	// placeholder
+	fmt.Println("Error: No subcommand specified")
+	fmt.Println()
+	_ = cmd.Usage()
 }
