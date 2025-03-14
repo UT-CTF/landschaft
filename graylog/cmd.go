@@ -7,7 +7,8 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupGenCaCmd(cmd)
+	setupGenCertsCmd(cmd)
+	setupInstallServerCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {
