@@ -21,7 +21,6 @@ var addLocalAdminCmd = &cobra.Command{
 }
 
 func addLocalAdmin(username string) {
-	// Create the user
 	cmd := exec.Command("useradd", username, "--no-create-home", "--home-dir", "/")
 	if err := runCommand(cmd); err != nil {
 		return
@@ -40,6 +39,7 @@ func addLocalAdmin(username string) {
 		fmt.Println("Error with passwd:", err)
 	}
 
+	fmt.Printf("Successfully added: %s!\n", username)
 }
 
 func runCommand(cmd *exec.Cmd) error {
