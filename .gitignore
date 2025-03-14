@@ -30,3 +30,5 @@ build/
 /*.csv
 *.crt
 *.key
+go/
+vendor/
