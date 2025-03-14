@@ -1,4 +1,4 @@
-package ldap
+package misc
 
 import (
 	"fmt"
@@ -7,8 +7,7 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupGenerateLdifCmd(cmd)
-	setupGeneratePasswordsCmd(cmd)
+	setupExtractCommand(cmd)
 }
 
 func Run(cmd *cobra.Command) {

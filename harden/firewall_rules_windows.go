@@ -21,7 +21,7 @@ type firewallRule struct {
 }
 
 func configureFirewall() {
-	jsonStr, err := embed.ExecuteScript("harden/firewall.ps1")
+	jsonStr, err := embed.ExecuteScript("harden/firewall.ps1", false)
 	if err != nil {
 		fmt.Println("Error executing script: ", err)
 		return

@@ -1,4 +1,4 @@
-package graylog
+package baseline
 
 import (
 	"fmt"
@@ -8,12 +8,10 @@ import (
 )
 
 func SetupCommand(cmd *cobra.Command) {
-	setupGenCertsCmd(cmd)
-	setupInstallServerCmd(cmd)
+	setupServicesCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {
-	fmt.Println(util.ErrorStyle.Render("Error: No subcommand specified"))
-	fmt.Println()
+	fmt.Println(util.ErrorStyle.Render("Error: No subcommand specified\n"))
 	_ = cmd.Usage()
 }
