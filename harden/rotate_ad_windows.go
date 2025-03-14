@@ -8,7 +8,7 @@ import (
 )
 
 func getDomainUsers() ([]string, error) {
-	scriptOut, err := embed.ExecuteScript("harden/get_ad_user_list.ps1", "")
+	scriptOut, err := embed.ExecuteScript("harden/get_ad_user_list.ps1", false, "")
 	if err != nil {
 		return nil, fmt.Errorf("error getting user list: %w", err)
 	}
@@ -21,7 +21,7 @@ func getDomainUsers() ([]string, error) {
 
 func applyDomainPasswordChanges(csvPath string) {
 	fmt.Println("Applying password changes")
-	scriptOut, err := embed.ExecuteScript("harden/rotate_ad.ps1", fmt.Sprintf("-Path '%s'", csvPath))
+	scriptOut, err := embed.ExecuteScript("harden/rotate_ad.ps1", false, fmt.Sprintf("-Path '%s'", csvPath))
 	if err != nil {
 		fmt.Println("Error applying password changes:", err)
 	}

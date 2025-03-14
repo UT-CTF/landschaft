@@ -1,14 +1,18 @@
 package triage
 
-import "github.com/UT-CTF/landschaft/util"
+import (
+	"fmt"
+
+	"github.com/UT-CTF/landschaft/util"
+)
 
 func Run() {
-	util.PrintSectionTitle("Network")
+	fmt.Println(util.TitleColor.Render("Network"))
 	runNetworkTriage()
-	util.PrintSectionTitle("Users & Groups")
+	fmt.Println(util.TitleColor.Render("Users & Groups"))
 	runUsersTriage()
-	util.PrintSectionTitle("OS Version")
+	fmt.Println(util.TitleColor.Render("OS Version"))
 	runOSVersionTriage()
-	util.PrintSectionTitle("Firewall")
+	fmt.Println(util.TitleColor.Render("Firewall"))
 	runFirewallTriage()
 }

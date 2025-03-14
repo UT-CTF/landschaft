@@ -10,7 +10,7 @@ import (
 var defaultBlacklist = []string{"blackteam", "krbtgt", "Administrator"}
 
 func getLocalUsers() ([]string, error) {
-	scriptOut, err := embed.ExecuteScript("harden/get_user_list.ps1", "")
+	scriptOut, err := embed.ExecuteScript("harden/get_user_list.ps1", false, "")
 	if err != nil {
 		return nil, fmt.Errorf("error getting user list: %w", err)
 	}
@@ -23,7 +23,7 @@ func getLocalUsers() ([]string, error) {
 
 func applyPasswordChanges(csvPath string) {
 	fmt.Println("Applying password changes")
-	scriptOut, err := embed.ExecuteScript("harden/rotate_local.ps1", fmt.Sprintf("-Path '%s'", csvPath))
+	scriptOut, err := embed.ExecuteScript("harden/rotate_local.ps1", false, fmt.Sprintf("-Path '%s'", csvPath))
 	if err != nil {
 		fmt.Println("Error applying password changes:", err)
 	}

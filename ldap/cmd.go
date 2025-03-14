@@ -8,6 +8,7 @@ import (
 
 func SetupCommand(cmd *cobra.Command) {
 	setupGenerateLdifCmd(cmd)
+	setupGeneratePasswordsCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {
