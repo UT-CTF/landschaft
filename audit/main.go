@@ -1,8 +1,12 @@
 package audit
 
-import "github.com/UT-CTF/landschaft/util"
+import (
+	"fmt"
+
+	"github.com/UT-CTF/landschaft/util"
+)
 
 func Run() {
-	util.PrintSectionTitle("Check SSHD")
+	fmt.Println(util.TitleColor.Render("Check SSHD"))
 	checkSSHD()
 }

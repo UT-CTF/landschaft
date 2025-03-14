@@ -3,6 +3,7 @@ package ldap
 import (
 	"fmt"
 
+	"github.com/charmbracelet/log"
 	"github.com/spf13/cobra"
 )
 
@@ -27,7 +28,7 @@ func setupGeneratePasswordsCmd(cmd *cobra.Command) {
 		Run: func(cmd *cobra.Command, args []string) {
 			err := GeneratePasswordsCSV(baseDn, outputPath, passwordLen, allowedChars, ldapArgs, excludeUsers)
 			if err != nil {
-				fmt.Printf("Error: %v\n", err)
+				log.Error("Failed to generate password:", "err", err)
 				return
 			}
 			fmt.Printf("Successfully wrote passwords to %s\n", outputPath)

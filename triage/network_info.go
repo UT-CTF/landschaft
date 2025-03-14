@@ -7,6 +7,7 @@ import (
 	"strings"
 
 	"github.com/cakturk/go-netstat/netstat"
+	"github.com/charmbracelet/log"
 )
 
 func runNetworkTriage() {
@@ -20,7 +21,7 @@ func runNetworkTriage() {
 func getAndPrintHostname() string {
 	var hostname, nameErr = os.Hostname()
 	if nameErr != nil {
-		fmt.Println("Error getting hostname")
+		log.Error("Failed to get hostname", "err", nameErr)
 		return "Error getting hostname"
 	}
 	fmt.Printf("Host Name: %s\n", hostname)
@@ -30,7 +31,7 @@ func getAndPrintHostname() string {
 func printDNSName(hostname string) {
 	addrs, err := net.LookupAddr(hostname)
 	if err != nil || len(addrs) == 0 {
-		fmt.Println("Error getting FQDN:", err)
+		log.Error("Failed to get FQDN", "err", err)
 		fmt.Printf("DNS Name: %s\n", hostname)
 		return
 	}
@@ -40,7 +41,7 @@ func printDNSName(hostname string) {
 func printIPAddrs() {
 	var interfaces, err = net.Interfaces()
 	if err != nil {
-		fmt.Printf("Error obtaining interfaces.\n")
+		log.Error("Failed to get network interfaces", "err", err)
 		return
 	}
 	for _, iface := range interfaces {
@@ -51,14 +52,14 @@ func printIPAddrs() {
 		fmt.Printf("Interface: %s\n", iface.Name)
 		var addrs, ipErr = iface.Addrs()
 		if ipErr != nil {
-			fmt.Printf("Error obtaining IP addresses")
+			log.Error("Failed to get IP addresses", "err", ipErr)
 			return
 		}
 		var ipv4Addrs, ipv6Addrs []string
 		for _, addr := range addrs {
 			ipNet, ok := addr.(*net.IPNet)
 			if !ok {
-				fmt.Printf("Error converting IP Addr")
+				log.Error("Failed to cast address to IPNet", "addr", addr)
 				return
 			}
 			if ipNet.IP.To4() != nil {

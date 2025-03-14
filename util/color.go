@@ -1,9 +1,33 @@
 package util
 
-import "github.com/fatih/color"
+import (
+	"github.com/charmbracelet/lipgloss"
+	"github.com/charmbracelet/lipgloss/table"
+)
 
-var titleColor = color.New(color.FgYellow).Add(color.Underline)
+var (
+	Purple    = lipgloss.Color("99")
+	Gray      = lipgloss.Color("245")
+	LightGray = lipgloss.Color("241")
+	ErrorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 
-func PrintSectionTitle(title string) {
-	titleColor.Println(title)
+	TitleColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#fdc981")).Underline(true)
+	headerStyle = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("#fdc981")).
+			Bold(true).
+			Align(lipgloss.Center)
+
+	cellStyle = lipgloss.NewStyle().Padding(0, 1)
+)
+
+func StyledTable() *table.Table {
+		return table.New().
+		Headers("username", "UID", "GID", "shell").
+		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color(Gray))).
+		StyleFunc(func(row, col int) lipgloss.Style {
+			if row == table.HeaderRow {
+				return headerStyle
+			}
+			return cellStyle
+		})
 }
