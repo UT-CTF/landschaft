@@ -10,6 +10,7 @@ import (
 func SetupCommand(cmd *cobra.Command) {
 	setupRotatePwdCmd(cmd)
 	setupFirewallCmd(cmd)
+	setupAddLocalAdminCmd(cmd)
 }
 
 func Run(cmd *cobra.Command) {
