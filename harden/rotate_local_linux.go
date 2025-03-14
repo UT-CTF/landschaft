@@ -11,7 +11,7 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-var defaultBlacklist = []string{"blackteam", "root"}
+var defaultBlacklist = []string{"blackteam", "root", "sync"}
 
 type user struct {
 	name  string
