@@ -13,6 +13,10 @@ cp $2 /opt/graylog/tls_certs/private.key
 # TODO: stop doing stupid things. (it's docker's fault)
 chmod 666 /opt/graylog/tls_certs/*
 
+# Firewall
+ufw allow 12201/tcp
+ufw allow 5555/tcp
+
 # gen .env file
 GRAYLOG_PASSWORD_SECRET=$(pwgen -N 1 -s 96)
 echo "GRAYLOG_PASSWORD_SECRET=$GRAYLOG_PASSWORD_SECRET" > /opt/graylog/.env
