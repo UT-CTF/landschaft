@@ -63,11 +63,11 @@ upperFor:
 	return userNames, nil
 }
 
-func applyPasswordChanges(csvPath string) error {
+func applyPasswordChanges(csvPath string) {
 	// Open the CSV file
 	file, err := os.Open(csvPath)
 	if err != nil {
-		return fmt.Errorf("failed to open CSV file: %w", err)
+		panic(fmt.Errorf("failed to open CSV file: %w", err))
 	}
 	defer file.Close()
 
@@ -77,7 +77,7 @@ func applyPasswordChanges(csvPath string) error {
 	// Read all records
 	records, err := reader.ReadAll()
 	if err != nil {
-		return fmt.Errorf("failed to read CSV file: %w", err)
+		panic(fmt.Errorf("failed to read CSV file: %w", err))
 	}
 
 	// Process each record
@@ -103,6 +103,4 @@ func applyPasswordChanges(csvPath string) error {
 
 		fmt.Printf("Successfully updated password for user: %s\n", username)
 	}
-
-	return nil
 }
