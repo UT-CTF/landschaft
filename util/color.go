@@ -6,12 +6,12 @@ import (
 )
 
 var (
-	Purple    = lipgloss.Color("99")
-	Gray      = lipgloss.Color("245")
-	LightGray = lipgloss.Color("241")
+	Purple     = lipgloss.Color("99")
+	Gray       = lipgloss.Color("245")
+	LightGray  = lipgloss.Color("241")
 	ErrorStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("1"))
 
-	TitleColor = lipgloss.NewStyle().Foreground(lipgloss.Color("#fdc981")).Underline(true)
+	TitleColor  = lipgloss.NewStyle().Foreground(lipgloss.Color("#fdc981")).Underline(true)
 	headerStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("#fdc981")).
 			Bold(true).
@@ -21,7 +21,7 @@ var (
 )
 
 func StyledTable() *table.Table {
-		return table.New().
+	return table.New().
 		Headers("username", "UID", "GID", "shell").
 		BorderStyle(lipgloss.NewStyle().Foreground(lipgloss.Color(Gray))).
 		StyleFunc(func(row, col int) lipgloss.Style {
