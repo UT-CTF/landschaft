@@ -8,8 +8,10 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"path"
 	"path/filepath"
 
+	"github.com/UT-CTF/landschaft/embed"
 	"github.com/spf13/cobra"
 )
 
@@ -31,12 +33,23 @@ var firefoxCmd = &cobra.Command{
 	},
 }
 
+var nxlogUrl string
+var install bool
+var certFile string
+var configFile string
 var nxlogCmd = &cobra.Command{
-	Use:                   "nxlog",
-	Args:                  cobra.ExactArgs(0),
-	DisableFlagsInUseLine: true,
+	Use:  "nxlog",
+	Args: cobra.ExactArgs(0),
 	Run: func(cmd *cobra.Command, args []string) {
-		installNxlog()
+		if install {
+			installNxlog()
+		}
+		if len(certFile) > 0 {
+			loadNxlogCert(certFile)
+		}
+		if len(configFile) > 0 {
+			loadNxlogConfig(configFile)
+		}
 	},
 }
 
@@ -52,6 +65,14 @@ var toolCommands = []*cobra.Command{
 }
 
 func setupToolsCommand(cmd *cobra.Command) {
+
+	nxlogCmd.Flags().StringVarP(&nxlogUrl, "url", "u", "", "URL to download Nxlog from")
+	nxlogCmd.Flags().BoolVarP(&install, "install", "i", false, "Install Nxlog")
+	nxlogCmd.Flags().StringVarP(&certFile, "cert", "c", "", "Path to the certificate file")
+	nxlogCmd.Flags().StringVarP(&configFile, "config", "f", "", "Path to the configuration file")
+
+	nxlogCmd.MarkFlagsRequiredTogether("install", "url")
+
 	cmd.AddGroup(toolsGroup)
 
 	for _, toolCmd := range toolCommands {
@@ -117,7 +138,7 @@ func installFirefox() {
 }
 
 func installNxlog() {
-	url := "https://dl.nxlog.co/dl/67d467c203d54"
+	url := nxlogUrl
 	data, err := downloadData(url)
 	if err != nil {
 		fmt.Println("Error downloading Nxlog: ", err)
@@ -136,16 +157,75 @@ func installNxlog() {
 		return
 	}
 	installFile.Close()
-	defer os.Remove(installFile.Name())
+	// defer os.Remove(installFile.Name())
 
 	cmd := exec.Command("msiexec", "/i", installFile.Name(), "/quiet")
 	err = cmd.Run()
 	if err != nil {
 		fmt.Println("Error running installer: ", err)
+		fmt.Println(installFile.Name())
 		return
 	}
 
+	cmd = exec.Command("sc", "stop", "nxlog")
+	err = cmd.Run()
+	if err != nil {
+		fmt.Println("Error stopping Nxlog service: ", err)
+		return
+	}
+
+	tmpConfPath := path.Join(os.TempDir(), "nxlog-landschaft-temp.conf")
+	embed.ExtractFile("misc/nxlog.conf", tmpConfPath)
+	defer os.Remove(tmpConfPath)
+	loadNxlogConfig(tmpConfPath)
+
 	fmt.Println("Nxlog installed successfully")
+}
+
+func loadNxlogCert(certFile string) {
+	cfile, err := os.Create("C:/Program Files/nxlog/cert/graylog-ca.pem")
+	if err != nil {
+		fmt.Println("Error creating certificate file: ", err)
+		return
+	}
+	defer cfile.Close()
+
+	data, err := os.ReadFile(certFile)
+	if err != nil {
+		fmt.Println("Error reading certificate file: ", err)
+		return
+	}
+
+	_, err = cfile.Write(data)
+	if err != nil {
+		fmt.Println("Error writing certificate file: ", err)
+		return
+	}
+
+	fmt.Println("Certificate loaded successfully")
+}
+
+func loadNxlogConfig(configFile string) {
+	cfile, err := os.Create("C:/Program Files/nxlog/conf/nxlog.conf")
+	if err != nil {
+		fmt.Println("Error creating configuration file: ", err)
+		return
+	}
+	defer cfile.Close()
+
+	data, err := os.ReadFile(configFile)
+	if err != nil {
+		fmt.Println("Error reading configuration file: ", err)
+		return
+	}
+
+	_, err = cfile.Write(data)
+	if err != nil {
+		fmt.Println("Error writing configuration file: ", err)
+		return
+	}
+
+	fmt.Println("Configuration loaded successfully")
 }
 
 func downloadData(url string) ([]byte, error) {
