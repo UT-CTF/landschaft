@@ -16,5 +16,4 @@ func Run(cmd *cobra.Command) {
 	fmt.Println("Error: No subcommand specified")
 	fmt.Println()
 	_ = cmd.Usage()
-	fmt.Println()
 }
