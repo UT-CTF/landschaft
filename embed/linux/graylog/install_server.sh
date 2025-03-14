@@ -6,10 +6,10 @@ apt-get install -y pwgen docker.io docker-compose-v2
 
 # Init /opt/graylog
 mkdir -p /opt/graylog
-mkdir -p /opt/graylog/graylog_data
+mkdir -p /opt/graylog/tls_certs
 cp docker-compose.yml /opt/graylog
-cp $1 /opt/graylog/graylog_data
-cp $2 /opt/graylog/graylog_data
+cp $1 /opt/graylog/tls_certs/public-chain.pem
+cp $2 /opt/graylog/tls_certs/private.key
 
 # gen .env file
 GRAYLOG_PASSWORD_SECRET=$(pwgen -N 1 -s 96)
