@@ -8,7 +8,7 @@ import (
 )
 
 func TestExecuteTestScript(t *testing.T) {
-	output, err := embed.ExecuteScript("test/test.ps1")
+	output, err := embed.ExecuteScript("test/test.ps1", false)
 	if err != nil {
 		t.Fatalf("Failed to execute test script: %v", err)
 	}
@@ -20,7 +20,7 @@ func TestExecuteTestScript(t *testing.T) {
 }
 
 func TestExecuteArgsTestScript(t *testing.T) {
-	output, err := embed.ExecuteScript("test/args_test.ps1", "-TestArg", "Hello!")
+	output, err := embed.ExecuteScript("test/args_test.ps1", false, "-TestArg", "Hello!")
 	if err != nil {
 		t.Fatalf("Failed to execute test script: %v", err)
 	}

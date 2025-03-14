@@ -7,10 +7,8 @@ import (
 	"github.com/UT-CTF/landschaft/embed"
 )
 
-var defaultBlacklist = []string{"blackteam", "krbtgt", "Administrator"}
-
-func getLocalUsers() ([]string, error) {
-	scriptOut, err := embed.ExecuteScript("harden/get_user_list.ps1", false, "")
+func getDomainUsers() ([]string, error) {
+	scriptOut, err := embed.ExecuteScript("harden/get_ad_user_list.ps1", false, "")
 	if err != nil {
 		return nil, fmt.Errorf("error getting user list: %w", err)
 	}
@@ -21,9 +19,9 @@ func getLocalUsers() ([]string, error) {
 	return users, nil
 }
 
-func applyPasswordChanges(csvPath string) {
+func applyDomainPasswordChanges(csvPath string) {
 	fmt.Println("Applying password changes")
-	scriptOut, err := embed.ExecuteScript("harden/rotate_local.ps1", false, fmt.Sprintf("-Path '%s'", csvPath))
+	scriptOut, err := embed.ExecuteScript("harden/rotate_ad.ps1", false, fmt.Sprintf("-Path '%s'", csvPath))
 	if err != nil {
 		fmt.Println("Error applying password changes:", err)
 	}

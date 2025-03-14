@@ -13,7 +13,7 @@ var (
 )
 
 var generateLdifCommand = &cobra.Command{
-	Use:   "generate",
+	Use:   "ldif",
 	Short: "Generate LDIF files",
 	PreRunE: func(cmd *cobra.Command, args []string) error {
 		// Check if required flags are provided
