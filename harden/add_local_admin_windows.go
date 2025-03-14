@@ -1,5 +1,5 @@
 package harden
 
-func addLocalAdmin() {
+func addLocalAdmin(username string) {
 	// placeholder
 }
