@@ -18,8 +18,8 @@ var installServerCmd = &cobra.Command{
 }
 
 func setupInstallServerCmd(cmd *cobra.Command) {
-	installServerCmd.Flags().StringVar(&tlsPublicChainPath, "tls-public-chain", "", "Path to TLS public certificate chain")
-	installServerCmd.Flags().StringVar(&tlsPrivateKeyPath, "tls-private-key", "", "Path to TLS private key")
+	installServerCmd.Flags().StringVar(&tlsPublicChainPath, "tls-public-chain", "graylog.internal.bundle.crt", "Path to TLS public certificate chain")
+	installServerCmd.Flags().StringVar(&tlsPrivateKeyPath, "tls-private-key", "graylog.internal.key", "Path to TLS private key")
 	installServerCmd.MarkFlagRequired("tls-public-chain")
 	installServerCmd.MarkFlagRequired("tls-private-key")
 

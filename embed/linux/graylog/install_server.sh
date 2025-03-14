@@ -6,10 +6,12 @@ apt-get install -y pwgen docker.io docker-compose-v2
 
 # Init /opt/graylog
 mkdir -p /opt/graylog
-mkdir -p /opt/graylog/graylog_data
+mkdir -p /opt/graylog/tls_certs
 cp docker-compose.yml /opt/graylog
-cp $1 /opt/graylog/graylog_data
-cp $2 /opt/graylog/graylog_data
+cp $1 /opt/graylog/tls_certs/public-chain.pem
+cp $2 /opt/graylog/tls_certs/private.key
+# TODO: stop doing stupid things. (it's docker's fault)
+chmod 666 /opt/graylog/tls_certs/*
 
 # gen .env file
 GRAYLOG_PASSWORD_SECRET=$(pwgen -N 1 -s 96)
@@ -26,9 +28,10 @@ echo 'vm.max_map_count=262144' >> /etc/sysctl.conf
 # Finish instructions
 echo "1. To finish Graylog installation, run the following commands:"
 echo "cd /opt/graylog"
-echo "docker-compose up -d"
+echo "docker compose up -d"
 echo "2. Graylog should be running on 127.0.0.1:9000!"
 echo "3. Find the initial password in the logs via 'docker compose logs graylog'"
 echo "4. Upload the ca-bundle.key file to the setup wizard"
-echo "5. Upload the content pack"
-echo "6. Setup TLS in the inputs settings"
+echo "5. Login using admin:<root passswrod from above>"
+echo "6. Upload the content pack"
+echo "7. Setup TLS in the inputs settings"
