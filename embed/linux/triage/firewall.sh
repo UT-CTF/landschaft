@@ -4,7 +4,7 @@
 # Supports iptables, firewalld and ufw
 
 check_iptables() {
-  if command -v iptables &>/dev/null; 
+  if command -v iptables &>/dev/null; then
     # iptables is always active
     echo "iptables is active"
     echo "=== IPTABLES RULES ==="
