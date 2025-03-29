@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net"
 	"os"
-	"strings"
 
 	"github.com/cakturk/go-netstat/netstat"
 	"github.com/charmbracelet/log"
@@ -29,13 +28,18 @@ func getAndPrintHostname() string {
 }
 
 func printDNSName(hostname string) {
-	addrs, err := net.LookupAddr(hostname)
-	if err != nil || len(addrs) == 0 {
-		log.Error("Failed to get FQDN", "err", err)
-		fmt.Printf("DNS Name: %s\n", hostname)
+	addrs, err := net.LookupHost(hostname)
+	if err != nil {
+		fmt.Println("error looking up hostname")
 		return
 	}
-	fmt.Printf("DNS Name: %s\n", strings.TrimSuffix(addrs[0], "."))
+	for _, addr := range addrs {
+		names, err := net.LookupAddr(addr)
+		if err == nil && len(names) > 0 {
+			fmt.Printf("FQDN for %s: %s\n", addr, names[0])
+			return
+		}
+	}
 }
 
 func printIPAddrs() {
