@@ -1,0 +1,9 @@
+[
+    {
+        "DisplayName": "DNS Client (UDP 53 Outbound)",
+        "Direction": "Outbound",
+        "Action": "Allow",
+        "RemotePort": "53",
+        "Protocol": "UDP"
+    }
+]
