@@ -1,9 +1,5 @@
 package harden
 
-// func configureFirewall(outbound bool, apply bool, ruleFile string) {
-// 	// placeholder
-// }
-
 func generateFirewallRules(outbound bool) {
 	// placeholder
 }

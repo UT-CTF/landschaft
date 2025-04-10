@@ -21,7 +21,6 @@ var firewallCmd = &cobra.Command{
 	Use:   "firewall",
 	Short: "Setup firewall rules",
 	Run: func(cmd *cobra.Command, args []string) {
-		// configureFirewall(firewallArgs.outbound, firewallArgs.apply, firewallArgs.ruleFile)
 		if firewallArgs.apply {
 			if firewallArgs.inbound == firewallArgs.outbound {
 				fmt.Println("Error: You must specify either --outbound or --inbound, but not both.")

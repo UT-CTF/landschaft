@@ -64,52 +64,7 @@ catch {
     exit 1
 }
 
-
-# $params = @{
-#     Test='hello'
-#     Second='bye'
-# }
-# $rules[0].PSObject.Properties | % { Write-Host $_.Value}
-# Write-Host $rules[0].GetType()
-# Write-Host $params.GetType()
-
-# try {
-#     $rules | % {
-#         Write-Host "Creating rule for $($_.Name) ..."
-#         $_ | % {
-#             Write-Host $_
-#         }
-#         $params = @{
-#             DisplayName = $_.Name
-#             Direction   = $_.Direction
-#             Action      = $_.Action
-#             Protocol    = $_.Protocol
-#             LocalPort   = $_.LocalPort
-#             Profile     = "Any"
-#             Enabled     = "True"
-#             ErrorAction = "Stop"
-#         }
-
-#         if ($_.Program) {
-#             $params.Program = $_.Program
-#         }
-
-#         # Write-Host "New-NetFirewallRule $params"
-#         # foreach ($key in $params.Keys) {
-#         #     Write-Host "$key : $($params[$key])"
-#         # }
-#         New-NetFirewallRule @params
-#     }
-# }
-# catch {
-#     Write-Host "Error creating rule: $($_.Exception.Message)"
-#     exit 1
-# }
-
 Write-Host "Firewall rules applied successfully."
 
 Write-Host "Writing old rules IDs to $OldRulesPath"
 $OldRules | Select-Object InstanceID | % {$_.InstanceID} | Out-File -FilePath $OldRulesPath
-
-# Write-Host "Removing existing inbound rules ..."
-# $OldRules | Remove-NetFirewallRule
