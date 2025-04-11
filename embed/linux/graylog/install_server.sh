@@ -21,7 +21,7 @@ ufw allow 5555/tcp
 GRAYLOG_PASSWORD_SECRET=$(pwgen -N 1 -s 96)
 echo "GRAYLOG_PASSWORD_SECRET=$GRAYLOG_PASSWORD_SECRET" > /opt/graylog/.env
 GRAYLOG_ROOT_PASSWORD=$(pwgen -N 1 -s 96)
-GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n $GRAYLOG_ROOT_PASSWORD | shasum -a 256)
+GRAYLOG_ROOT_PASSWORD_SHA2=$(echo -n $GRAYLOG_ROOT_PASSWORD | shasum -a 256 | cut -d " " -f 1)
 echo "Graylog root password: $GRAYLOG_ROOT_PASSWORD"
 echo "GRAYLOG_ROOT_PASSWORD_SHA2=$GRAYLOG_ROOT_PASSWORD_SHA2" >> /opt/graylog/.env
 
