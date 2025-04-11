@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
-	"os/user"
 )
 
 func addLocalAdmin(username string) {
@@ -14,16 +13,13 @@ func addLocalAdmin(username string) {
 		return
 	}
 	// Add user to sudo or wheel accordingly
-	_, err := user.LookupGroup("root")
-	if err != nil {
-		cmd = exec.Command("usermod", "-aG", "root", username)
-	} else if _, err := user.LookupGroup("wheel"); err != nil {
+	cmd = exec.Command("usermod", "-aG", "sudo", username)
+	if err := runCommand(cmd); err != nil {
 		cmd = exec.Command("usermod", "-aG", "wheel", username)
-	} else {
-		fmt.Print("root and wheel not found")
-		return
+		if err := runCommand(cmd); err != nil {
+			return
+		}
 	}
-
 	// runs usermod to give the new user admin priveleges
 	if err := runCommand(cmd); err != nil {
 		return
