@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Directory for baselining information
-baseline_dir="./baseline"
+baseline_dir="/baseline"
 
 # Function to create numbered directories
 create_numbered_directory() {
