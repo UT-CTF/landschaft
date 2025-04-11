@@ -23,6 +23,11 @@ type Data struct {
 	CsvRows [][]string
 }
 
+type UserPass struct {
+	Username string
+	Password string
+}
+
 func generateLdif(templatePath string, csvPath string, outputPath string) error {
 	// Open CSV file
 	csvData, err := os.Open(csvPath)
@@ -57,6 +62,42 @@ func generateLdif(templatePath string, csvPath string, outputPath string) error 
 
 	err = t.Execute(output, Data{
 		CsvRows: csvRows,
+	})
+	if err != nil {
+		return fmt.Errorf("failed to execute template: %v", err)
+
+	}
+
+	return nil
+}
+
+func generateLdifSingle(templatePath string, outputPath string) error {
+
+	// Prompt for username and password
+	var username, password string
+	fmt.Print("Enter username: ")
+	fmt.Scanln(&username)
+	fmt.Print("Enter password: ")
+	fmt.Scanln(&password)
+	
+
+	// Create output file
+	output, err := os.Create(outputPath)
+	if err != nil {
+		return fmt.Errorf("failed to create output file: %v", err)
+	}
+	defer output.Close()
+
+	// Prepare template
+	t := template.New(path.Base(templatePath)).Funcs(funcMap).Funcs(sprig.FuncMap())
+	t, err = t.ParseFiles(templatePath)
+	if err != nil {
+		return fmt.Errorf("failed to parse template file: %v", err)
+	}
+
+	err = t.Execute(output, UserPass{
+		Username: username,
+		Password: password,
 	})
 	if err != nil {
 		return fmt.Errorf("failed to execute template: %v", err)
