@@ -35,9 +35,14 @@ func printDNSName(hostname string) {
 	}
 	for _, addr := range addrs {
 		names, err := net.LookupAddr(addr)
-		if err == nil && len(names) > 0 {
-			fmt.Printf("FQDN for %s: %s\n", addr, names[0])
+		if err != nil {
 			return
+		}
+		for _, name := range names {
+			if name == "localhost" {
+				continue
+			}
+			fmt.Printf("FQDN for %s: %s\n", addr, name)
 		}
 	}
 }
