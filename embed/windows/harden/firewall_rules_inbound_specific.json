@@ -1,6 +1,6 @@
 [
     {
-        "Name": "DNS Server (UDP 53 Inbound)",
+        "DisplayName": "DNS Server (UDP 53 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "53",
@@ -8,7 +8,7 @@
         "Program": "C:\\Windows\\System32\\dns.exe"
     },
     {
-        "Name": "DNS Server Optional (TCP 53 Inbound)",
+        "DisplayName": "DNS Server Optional (TCP 53 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "53",
@@ -16,7 +16,15 @@
         "Program": "C:\\Windows\\System32\\dns.exe"
     },
     {
-        "Name": "Kerberos (UDP 88 Inbound)",
+        "DisplayName": "DHCP Server (UDP 67 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "67",
+        "Protocol": "UDP",
+        "Program": "C:\\Windows\\System32\\dhcp.exe"
+    },
+    {
+        "DisplayName": "Kerberos (UDP 88 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "88",
@@ -24,7 +32,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "Kerberos (TCP 88 Inbound)",
+        "DisplayName": "Kerberos (TCP 88 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "88",
@@ -32,7 +40,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "LDAP (TCP 389 Inbound)",
+        "DisplayName": "LDAP (TCP 389 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "389",
@@ -40,7 +48,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "LDAP Optional (UDP 389 Inbound)",
+        "DisplayName": "LDAP Optional (UDP 389 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "389",
@@ -48,7 +56,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "LDAP SSL (TCP 636 Inbound)",
+        "DisplayName": "LDAP SSL (TCP 636 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "636",
@@ -56,7 +64,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "LDAP GC (TCP 3268 Inbound)",
+        "DisplayName": "LDAP GC (TCP 3268 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "3268",
@@ -64,7 +72,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "LDAP GC SSL (TCP 3269 Inbound)",
+        "DisplayName": "LDAP GC SSL (TCP 3269 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "3269",
@@ -72,7 +80,7 @@
         "Program": "C:\\Windows\\System32\\lsass.exe"
     },
     {
-        "Name": "RPC Endpoint Mapper (TCP 135 Inbound)",
+        "DisplayName": "RPC Endpoint Mapper (TCP 135 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "135",
@@ -80,7 +88,7 @@
         "Program": "C:\\Windows\\System32\\svchost.exe"
     },
     {
-        "Name": "SMB (TCP 445 Inbound)",
+        "DisplayName": "SMB (TCP 445 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "445",
@@ -88,28 +96,28 @@
         "Program": "C:\\Windows\\System32\\svchost.exe"
     },
     {
-        "Name": "HTTP (TCP 80 Inbound)",
+        "DisplayName": "HTTP (TCP 80 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "80",
         "Protocol": "TCP"
     },
     {
-        "Name": "HTTPS (TCP 443 Inbound)",
+        "DisplayName": "HTTPS (TCP 443 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "443",
         "Protocol": "TCP"
     },
     {
-        "Name": "MySQL (TCP 3306 Inbound)",
+        "DisplayName": "MySQL (TCP 3306 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "3306",
         "Protocol": "TCP"
     },
     {
-        "Name": "OpenSSH (TCP 22 Inbound)",
+        "DisplayName": "OpenSSH (TCP 22 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "22",
@@ -117,10 +125,26 @@
         "Program": "C:\\Windows\\System32\\OpenSSH\\sshd.exe"
     },
     {
-        "Name": "RDP (TCP 3389 Inbound)",
+        "DisplayName": "RDP (TCP 3389 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
         "LocalPort": "3389",
+        "Protocol": "TCP",
+        "Program": "C:\\Windows\\System32\\svchost.exe"
+    },
+    {
+        "DisplayName": "WinRM (TCP 5985 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "5985",
+        "Protocol": "TCP",
+        "Program": "C:\\Windows\\System32\\svchost.exe"
+    },
+    {
+        "DisplayName": "WinRM SSL (TCP 5986 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "5986",
         "Protocol": "TCP",
         "Program": "C:\\Windows\\System32\\svchost.exe"
     }

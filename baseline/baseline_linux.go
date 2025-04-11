@@ -1,7 +1,17 @@
 package baseline
 
-import "github.com/UT-CTF/landschaft/util"
+import (
+	"log"
+	"os"
+
+	"github.com/UT-CTF/landschaft/util"
+)
 
 func runBaseline() {
-	util.RunAndPrintScript("baseline/baseline.sh")
+	cwd, err := os.Getwd()
+	if err != nil {
+		log.Fatal(err, "Failed to get current working directory")
+		return
+	}
+	util.RunAndPrintScript("baseline/baseline.sh", cwd)
 }

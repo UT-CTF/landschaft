@@ -5,6 +5,8 @@
 
 check_iptables() {
   if command -v iptables &>/dev/null; then
+    # iptables is always active
+    echo "iptables is active"
     echo "=== IPTABLES RULES ==="
     echo "INPUT Chain:"
     iptables -L INPUT -n | grep -E 'ACCEPT.*dpt:[0-9]+'
@@ -17,6 +19,10 @@ check_iptables() {
 }
 
 check_firewalld() {
+  if command -v firewall-cmd &>/dev/null; then
+    echo "=== FIREWALLD STATUS ==="
+    systemctl is-active firewalld
+  fi
   if command -v firewall-cmd &>/dev/null && systemctl is-active --quiet firewalld; then
     echo "=== FIREWALLD RULES ==="
     echo "Active zones: $(firewall-cmd --get-active-zones | grep -v '^[[:space:]]')"
@@ -29,6 +35,8 @@ check_firewalld() {
 
 check_ufw() {
   if command -v ufw &>/dev/null && ufw status &>/dev/null; then
+    echo "=== UFW STATUS ==="
+    ufw status
     echo "=== UFW RULES ==="
     ufw status | grep -E '(ALLOW|DENY)'
     return 0
