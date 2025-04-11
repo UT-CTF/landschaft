@@ -4,10 +4,9 @@
         echo "Please provide the path to the backup file."
         exit 1
     fi
-    read -p "Are you sure you want to restore /etc from $1? (y/n) " response
-
+    read -p "Are you sure you want to restore /etc from $1? (y/n): " response < /dev/tty
     if [ "$response" != "y" ] && [ "$response" != "Y" ]; then
-        echo "Restore cancelled. Maybe you're not sudo?"
+        echo "Restore cancelled."
         exit 0
     fi
 
