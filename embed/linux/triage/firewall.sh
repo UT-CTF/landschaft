@@ -36,7 +36,7 @@ check_firewalld() {
 check_ufw() {
   if command -v ufw &>/dev/null && ufw status &>/dev/null; then
     echo "=== UFW STATUS ==="
-    ufw status | grep "active"
+    ufw status
     echo "=== UFW RULES ==="
     ufw status | grep -E '(ALLOW|DENY)'
     return 0
