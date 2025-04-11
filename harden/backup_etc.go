@@ -31,7 +31,7 @@ var restoreEtcCmd = &cobra.Command{
 			fmt.Println("Error getting directory")
 			return
 		}
-		backup_etc(backupPath)
+		restore_etc(backupPath)
 
 	},
 }

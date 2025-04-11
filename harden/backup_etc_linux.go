@@ -7,9 +7,9 @@ import (
 )
 
 func backup_etc(backupDirectory string) {
-	embed.ExecuteScript("harden/backup_etc.sh", false, fmt.Sprintf("-Path '%s'", backupDirectory))
+	fmt.Print("attempting to backup to ", backupDirectory, "\n")
+	embed.ExecuteScript("harden/backup_etc.sh", true, fmt.Sprintf("-Path '%s'", backupDirectory))
 }
-
 func restore_etc(restoreDirectory string) {
-	embed.ExecuteScript("harden/restore_etc.sh", false, fmt.Sprintf("-Path '%s'", restoreDirectory))
+	embed.ExecuteScript("harden/restore_etc.sh", true, fmt.Sprintf("-Path '%s'", restoreDirectory))
 }
