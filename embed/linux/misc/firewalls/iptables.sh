@@ -109,7 +109,11 @@ echo "[+] Saving rules..."
 netfilter-persistent save
 
 echo "[!] Setting iptables flush in 5 minutes as backup..."
-(sleep 300 && iptables -F && echo "[+] Auto-flush: iptables rules have been cleared after 5 minutes.") &
+(sleep 300 && iptables -F && iptables -X && iptables -Z && \
+iptables -P INPUT ACCEPT && iptables -P FORWARD ACCEPT && iptables -P OUTPUT ACCEPT && \
+ip6tables -F && ip6tables -X && ip6tables -Z && \
+ip6tables -P INPUT ACCEPT && ip6tables -P FORWARD ACCEPT && ip6tables -P OUTPUT ACCEPT && \
+echo "[+] Auto-flush: iptables rules cleared and default policies set to ACCEPT after 5 minutes.") &
 echo "[!] To cancel the flush, run kill <pid>. You can find the PID by running ps aux| grep 'sleep 300"
 
 echo "[✓] Firewall setup complete. Review rules and reboot if needed."
