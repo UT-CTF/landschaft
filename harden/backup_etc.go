@@ -42,6 +42,6 @@ func setupBackupEtcCmd(cmd *cobra.Command) {
 }
 
 func setupRestoreEtcCmd(cmd *cobra.Command) {
-	restoreEtcCmd.Flags().StringP("restore-directory", "d", "/", "Directory path to backup to")
+	restoreEtcCmd.Flags().StringP("restore-directory", "d", "", "Directory path to backup to")
 	cmd.AddCommand(restoreEtcCmd)
 }

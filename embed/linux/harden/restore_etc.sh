@@ -22,7 +22,7 @@
         exit 1
     fi
     # Restore the /etc/ folder from the backup
-    tar -xzf "$1" -C /
+    tar -v -xzf "$1" -C / --overwrite
 
     # status code
     if [ $? -eq 0 ]; then
