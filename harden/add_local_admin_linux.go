@@ -20,10 +20,6 @@ func addLocalAdmin(username string) {
 			return
 		}
 	}
-	// runs usermod to give the new user admin priveleges
-	if err := runCommand(cmd); err != nil {
-		return
-	}
 	// Set the user's password interactively
 	cmd = exec.Command("passwd", username)
 	cmd.Stdin = os.Stdin
