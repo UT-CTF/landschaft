@@ -12,10 +12,13 @@ func addLocalAdmin(username string) {
 	if err := runCommand(cmd); err != nil {
 		return
 	}
-	// Add user to group 0 (root)
-	cmd = exec.Command("usermod", "-aG", "0", username)
+	// Add user to sudo or wheel accordingly
+	cmd = exec.Command("usermod", "-aG", "sudo", username)
 	if err := runCommand(cmd); err != nil {
-		return
+		cmd = exec.Command("usermod", "-aG", "wheel", username)
+		if err := runCommand(cmd); err != nil {
+			return
+		}
 	}
 	// Set the user's password interactively
 	cmd = exec.Command("passwd", username)
