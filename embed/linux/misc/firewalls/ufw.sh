@@ -4,6 +4,10 @@
 
 set -e
 
+echo "[+] Installign UFW if not already installed.."
+apt-get update
+apt-get install -y ufw
+
 echo "[+] Resetting UFW to default..."
 ufw --force reset
 
@@ -87,9 +91,10 @@ echo "[!] Enabling UFW..."
 ufw --force enable
 
 echo "[!] Scheduling UFW reset in 5 minutes as anti-lockout..."
-echo "ufw --force reset" | at now + 5 minutes
-AT_JOB=$(atq | tail -n1 | awk '{print $1}')
-echo "[+] Auto-reset job scheduled with ID: $AT_JOB. run this command to cancel it: atrm $AT_JOB"
+echo "[!] Setting iptables flush in 5 minutes as backup..."
+(sleep 300 && ufw --force reset && echo "[+] Auto-flush: iptables rules have been cleared after 5 minutes.") &
+echo "[!] To cancel the flush, run kill <pid>. You can find the PID by running ps aux| grep 'sleep 300"
+
 
 echo "[✓] UFW firewall setup complete. Use 'ufw status numbered' to review rules."
 

@@ -6,6 +6,11 @@
 set -e
 
 # Initial Setup
+echo "[+] Installing iptables and iptables-persistent (if not already installed)..."
+apt-get update
+apt-get install -y iptables
+apt-get install -y iptables-persistent
+
 echo "[+] Flushing existing rules..."
 iptables -F
 iptables -X
@@ -100,17 +105,12 @@ iptables -A OUTPUT -p udp --dport 443 -j ACCEPT  # For HTTP/3 (QUIC)
 # iptables -A OUTPUT -p tcp --dport 21 -j ACCEPT
 
 # ---------- saving rules ----------
-echo "[+] Installing iptables-persistent (if not already installed)..."
-apt-get install -y iptables-persistent
-
 echo "[+] Saving rules..."
 netfilter-persistent save
 
 echo "[!] Setting iptables flush in 5 minutes as backup..."
-echo "iptables -F" | at now + 5 minutes
-AT_JOB=$(atq | tail -n1 | awk '{print $1}')
-echo "[+] Auto-flush job scheduled with ID: $AT_JOB. To cancel the auto-flush, run: atrm $AT_JOB"
-
+(sleep 300 && iptables -F && echo "[+] Auto-flush: iptables rules have been cleared after 5 minutes.") &
+echo "[!] To cancel the flush, run kill <pid>. You can find the PID by running ps aux| grep 'sleep 300"
 
 echo "[✓] Firewall setup complete. Review rules and reboot if needed."
 
