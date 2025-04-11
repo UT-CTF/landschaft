@@ -21,6 +21,13 @@
         "Protocol": "UDP"
     },
     {
+        "DisplayName": "DHCP Client (UDP 68 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "68",
+        "Protocol": "UDP"
+    },
+    {
         "DisplayName": "Kerberos (UDP 88 Inbound)",
         "Direction": "Inbound",
         "Action": "Allow",
@@ -131,5 +138,74 @@
         "Action": "Allow",
         "LocalPort": "5986",
         "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "SMTP (TCP 25 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "25",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "POP3 (TCP 101 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "101",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "NTP (UDP 123 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "123",
+        "Protocol": "UDP"
+    },
+    {
+        "DisplayName": "IMAP4 (TCP 143 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "143",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "SMTP SSL (TCP 465 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "465",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "SMTP (TCP 587 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "587",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "IMAP4 SSL (TCP 993 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "993",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "POP3 SSL (TCP 995 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "995",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "MAPI (TCP 6001 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "6001",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "ICMPv4 (Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "Protocol": "ICMPv4"
     }
 ]

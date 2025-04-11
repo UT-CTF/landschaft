@@ -1,9 +1,23 @@
 [
     {
-        "DisplayName": "DNS Client (UDP 53 Outbound)",
+        "DisplayName": "DNS (UDP 53 Outbound)",
         "Direction": "Outbound",
         "Action": "Allow",
         "RemotePort": "53",
         "Protocol": "UDP"
+    },
+    {
+        "DisplayName": "DNS Optional (TCP 53 Outbound)",
+        "Direction": "Outbound",
+        "Action": "Allow",
+        "RemotePort": "53",
+        "Protocol": "TCP"
+    },
+    {
+        "DisplayName": "SQL Client (TCP 3306 Outbound)",
+        "Direction": "Outbound",
+        "Action": "Allow",
+        "RemotePort": "3306",
+        "Protocol": "TCP"
     }
 ]

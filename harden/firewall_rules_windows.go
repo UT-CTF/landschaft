@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 
 	"github.com/UT-CTF/landschaft/embed"
@@ -20,17 +21,23 @@ func generateFirewallRules(outbound bool) {
 	if outbound {
 		rulesPath = OutboundRulesPath
 	}
+
 	jsonStr, err := embed.ExecuteScript("harden/firewall.ps1", false, "-RulePath", rulesPath)
 	if err != nil {
 		fmt.Println("Error executing script: ", err)
 		return
 	}
+
 	var rules []map[string]string
 	err = json.Unmarshal([]byte(jsonStr), &rules)
 	if err != nil {
 		fmt.Println("Error parsing JSON: ", err)
 		return
 	}
+
+	sort.Slice(rules, func(i, j int) bool {
+		return rules[i]["DisplayName"] < rules[j]["DisplayName"]
+	})
 
 	var selected []int
 
@@ -52,7 +59,11 @@ func generateFirewallRules(outbound bool) {
 	fullForm := huh.NewForm(
 		huh.NewGroup(ruleSelect, pathInput),
 	)
-	_ = fullForm.Run()
+	err = fullForm.Run()
+	if err != nil {
+		fmt.Println("Error running form: ", err)
+		return
+	}
 
 	outputPath = strings.TrimSpace(outputPath)
 	if len(outputPath) == 0 {
