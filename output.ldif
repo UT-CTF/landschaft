@@ -1,4 +1,0 @@
-dn: uid=aaa,ou=Users,dc=mydom,dc=com
-changetype: modify
-replace: userPassword
-userPassword: {SSHA}HU+YnXmFzTs/d04Us6YF0oxnYarNY01n7ABYU8EDDOb+Wfsl/+2gDA==

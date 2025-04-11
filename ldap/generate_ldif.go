@@ -9,6 +9,7 @@ import (
 	"text/template"
 
 	"github.com/Masterminds/sprig/v3"
+	"github.com/charmbracelet/x/term"
 	"github.com/jsimonetti/pwscheme/ssha"
 )
 
@@ -77,9 +78,31 @@ func generateLdifSingle(templatePath string, outputPath string) error {
 	var username, password string
 	fmt.Print("Enter username: ")
 	fmt.Scanln(&username)
-	fmt.Print("Enter password: ")
-	fmt.Scanln(&password)
-	
+
+	var match bool
+	for !match {
+		fmt.Print("Enter password: ")
+		passwordBytes, err := term.ReadPassword(os.Stdin.Fd())
+		if err != nil {
+			return fmt.Errorf("failed to read password: %v", err)
+		}
+		password = string(passwordBytes)
+		fmt.Println()
+
+		fmt.Print("Confirm password: ")
+		var passwordConfirm string
+		passwordConfBytes, err := term.ReadPassword(os.Stdin.Fd())
+		if err != nil {
+			return fmt.Errorf("failed to read password: %v", err)
+		}
+		passwordConfirm = string(passwordConfBytes)
+
+		if password == passwordConfirm {
+			match = true
+		} else {
+			fmt.Println("Passwords do not match. Please try again.")
+		}
+	}
 
 	// Create output file
 	output, err := os.Create(outputPath)
@@ -103,6 +126,8 @@ func generateLdifSingle(templatePath string, outputPath string) error {
 		return fmt.Errorf("failed to execute template: %v", err)
 
 	}
+
+	fmt.Printf("LDIF file generated at %s\n", outputPath)
 
 	return nil
 }
