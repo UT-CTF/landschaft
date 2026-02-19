@@ -9,9 +9,12 @@ import (
 	"github.com/UT-CTF/landschaft/util"
 )
 
-func runUsersTriage() {
-	printUsers()
-	printGroups()
+func runUsersTriage() string {
+	csv := printUsers()
+	csv += "\t"
+	csv += printGroups()
+	csv += "\t"
+	return csv
 }
 
 type user struct {
@@ -27,11 +30,11 @@ type group struct {
 	users []string
 }
 
-func printUsers() {
+func printUsers() string {
 	file, err := os.Open("/etc/passwd")
 	if err != nil {
 		fmt.Println("Error reading /etc/passwd:", err)
-		return
+		return "err"
 	}
 	defer file.Close()
 	scanner := bufio.NewScanner(file)
@@ -52,20 +55,23 @@ func printUsers() {
 	}
 
 	// convert to [][]string
+	var result string
 	userListStr := make([][]string, len(userList))
 	for i, u := range userList {
 		userListStr[i] = []string{u.name, u.uid, u.gid, u.shell}
+		result += fmt.Sprintf("%s,%s,%s,%s; ", u.name, u.uid, u.gid, u.shell)
 	}
 
 	t := util.StyledTable().Rows(userListStr...)
 	fmt.Println(t.Render())
+	return result
 }
 
-func printGroups() {
+func printGroups() string {
 	file, err := os.Open("/etc/group")
 	if err != nil {
 		fmt.Println("Error reading /etc/group:", err)
-		return
+		return "err"
 	}
 	defer file.Close()
 
@@ -90,11 +96,14 @@ func printGroups() {
 	}
 
 	// convert to [][]string
+	var result string
 	groupListStr := make([][]string, len(groupList))
 	for i, g := range groupList {
 		groupListStr[i] = []string{g.name, g.gid, strings.Join(g.users, ",")}
+		result += fmt.Sprintf("%s,%s,%s; ", g.name, g.gid, strings.Join(g.users, ";"))
 	}
 
 	t := util.StyledTable().Headers("group", "gid", "users").Rows(groupListStr...)
 	fmt.Println(t.Render())
+	return result
 }
