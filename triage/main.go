@@ -3,8 +3,7 @@ package triage
 import (
 	"fmt"
 	"os"
-	"os/exec"
-	"runtime"
+	"path/filepath"
 	"strings"
 
 	"github.com/UT-CTF/landschaft/util"
@@ -45,43 +44,24 @@ func Run() {
 
 	}
 
-	openOrCopyFile(file.Name())
+	printCopyInstructions()
 
 }
 
-func openOrCopyFile(filename string) {
-	if runtime.GOOS == "windows" {
-		println("\nOpen " + filename + " in notepad to copy to sheets")
-		err := exec.Command("notepad.exe", filename).Start()
-		if err != nil {
-			err := exec.Command("explorer.exe", filename).Start()
-			if err != nil {
-				println(err.Error())
-				return
-			}
-		}
-		return
+func printCopyInstructions() {
+	sshConn := os.Getenv("SSH_CONNECTION")
+	fields := strings.Fields(sshConn)
+	serverUser := os.Getenv("USER")
+	serverIP := "<ip>"
+	if len(fields) >= 3 {
+
+		serverIP = fields[2]
 	}
 
-	// Linux - install and use xclip
-	err := exec.Command("sudo", "apt-get", "install", "-y", "xclip").Run()
-	if err != nil {
-		println("\nCannot install xclip! must use xclip or xsel to copy to sheets")
-		println(err.Error())
-		return
-	}
+	exePath, _ := os.Executable()
+	tsvPath := filepath.Join(filepath.Dir(exePath), "triage.tsv")
 
-	data, err := os.ReadFile(filename)
-	if err != nil {
-		fmt.Println("Error reading file:", err)
-		return
-	}
-
-	cmd := exec.Command("xclip", "-selection", "clipboard")
-	cmd.Stdin = strings.NewReader(string(data))
-	cmd.Run()
-
-	println("\n\n ****** Triage copied to clipboard ******")
-	println("\n\n Triage saved to " + filename + ". To copy:")
-	println("\n\tcat " + filename + " | xclip -selection clipboard\n\n")
+	fmt.Println("To copy to clipboard:")
+	fmt.Printf("\tIf your host is linux: ssh %s@%s \"cat %s\" | xclip -selection clipboard\n", serverUser, serverIP, tsvPath)
+	fmt.Printf("\tIf your host is windows: ssh %s@%s \"cat %s\" | clip.exe\n", serverUser, serverIP, tsvPath)
 }
