@@ -32,19 +32,12 @@ func parseFirewall(result string) string {
 	for _, line := range lines {
 		trimmed := strings.TrimSpace(line)
 
-		// skip header lines
-		if strings.HasPrefix(trimmed, "Name") || strings.HasPrefix(trimmed, "----") || trimmed == "" {
+		if strings.HasPrefix(trimmed, "Name") || strings.HasPrefix(trimmed, "----") || trimmed == "" || strings.HasPrefix(trimmed, "Interfaces:") {
 			continue
 		}
 
-		// interface lines - 3 fields
 		fields := strings.Fields(trimmed)
-		if len(fields) == 3 && !strings.HasPrefix(trimmed, "Profile:") && !strings.HasSuffix(trimmed, "Settings:") && !strings.HasPrefix(trimmed, "State") && !strings.HasPrefix(trimmed, "Firewall") {
-			interfaces = append(interfaces, iface{fields[0], fields[1], fields[2]})
-			continue
-		}
 
-		// Profile: X - Enabled/Disabled
 		if strings.HasPrefix(trimmed, "Profile:") {
 			parts := strings.Split(trimmed, " - ")
 			profileName := strings.TrimSpace(strings.TrimPrefix(parts[0], "Profile:"))
@@ -54,7 +47,6 @@ func parseFirewall(result string) string {
 			continue
 		}
 
-		// X Profile Settings:
 		if strings.HasSuffix(trimmed, "Profile Settings:") {
 			currentProfile = strings.TrimSuffix(trimmed, " Profile Settings:")
 			continue
@@ -63,10 +55,20 @@ func parseFirewall(result string) string {
 		if currentProfile != "" {
 			if strings.HasPrefix(trimmed, "State") {
 				profileState[currentProfile] = strings.TrimSpace(strings.TrimPrefix(trimmed, "State"))
+				continue
 			}
 			if strings.HasPrefix(trimmed, "Firewall Policy") {
 				profilePolicy[currentProfile] = strings.TrimSpace(strings.TrimPrefix(trimmed, "Firewall Policy"))
+				continue
 			}
+		}
+
+		// interface line - last field is category, second to last is alias, rest is name
+		if len(fields) >= 3 {
+			category := fields[len(fields)-1]
+			alias := fields[len(fields)-2]
+			name := strings.Join(fields[:len(fields)-2], " ")
+			interfaces = append(interfaces, iface{name, alias, category})
 		}
 	}
 
