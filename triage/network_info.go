@@ -125,7 +125,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) string {
 		result = "NONE"
 	}
 
-	return "\"" + result + "\"\t"
+	return result
 }
 
 func printNetstat() string {
@@ -136,7 +136,7 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += printSockets("\nTCP IPv4 Sockets:", tcpSocks)
+		result += "## TCP ##\n" + printSockets("\nTCP IPv4 Sockets:", tcpSocks)
 	}
 	// Get UDP IPv4 sockets
 	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
@@ -144,7 +144,7 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += printSockets("\nUDP IPv4 Sockets:", udpSocks)
+		result += "\n## UDP ##\n" + printSockets("\nUDP IPv4 Sockets:", udpSocks)
 	}
 	// Get TCP IPv6 sockets
 	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
@@ -162,5 +162,5 @@ func printNetstat() string {
 	} else {
 		printSockets("\nUDP IPv6 Sockets:", udp6Socks)
 	}
-	return result
+	return "\"" + result + "\"\t"
 }
