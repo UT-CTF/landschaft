@@ -13,7 +13,7 @@ func runOSVersionTriage() string {
 
 func parseOSVersion(result string) string {
 	lines := strings.Split(result, "\n")
-	var osName, osVersion string
+	var osName, osVersion, osConf string
 
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
@@ -23,7 +23,11 @@ func parseOSVersion(result string) string {
 		if strings.HasPrefix(line, "OS Version:") {
 			osVersion = strings.TrimSpace(strings.TrimPrefix(line, "OS Version:"))
 		}
+
+		if strings.HasPrefix(line, "OS Configuration:") {
+			osConf = strings.TrimSpace(strings.TrimPrefix(line, "OS Configuration:"))
+		}
 	}
 
-	return fmt.Sprintf("\"%s\n%s\"", osName, osVersion)
+	return fmt.Sprintf("\"%s\n%s\n\n%s\"", osName, osVersion, osConf)
 }
