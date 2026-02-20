@@ -100,7 +100,7 @@ func printGroups() string {
 	groupListStr := make([][]string, len(groupList))
 	for i, g := range groupList {
 		groupListStr[i] = []string{g.name, g.gid, strings.Join(g.users, ",")}
-		result += fmt.Sprintf("%s (GID: %s) - %s\n\n ", g.name, g.gid, strings.Join(g.users, ", "))
+		result += fmt.Sprintf("%s (GID: %s) - %s\n\n", g.name, g.gid, strings.Join(g.users, ", "))
 	}
 
 	t := util.StyledTable().Headers("group", "gid", "users").Rows(groupListStr...)

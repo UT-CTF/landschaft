@@ -18,19 +18,17 @@ func Run() {
 
 	fmt.Println(util.TitleColor.Render("Network"))
 
-	if _, err := file.Write([]byte(runNetworkTriage())); err != nil {
+	hostname, csv := runNetworkTriage()
+
+	fmt.Println(util.TitleColor.Render("OS Version"))
+
+	if _, err := file.Write([]byte(hostname + "\t" + runOSVersionTriage() + "\t" + csv)); err != nil {
 		// ignore error
 	}
 
 	fmt.Println(util.TitleColor.Render("Users & Groups"))
 
 	if _, err := file.Write([]byte(runUsersTriage())); err != nil {
-		// ignore error
-	}
-
-	fmt.Println(util.TitleColor.Render("OS Version"))
-
-	if _, err := file.Write([]byte(runOSVersionTriage())); err != nil {
 		// ignore error
 	}
 
@@ -72,6 +70,6 @@ func printCopyInstructions() {
 	}
 
 	fmt.Println("To copy to clipboard:")
-	fmt.Printf("\tIf your host is linux: ssh %s@%s \"%s %s\" | xclip -selection clipboard\n", serverUser, serverIP, catCmd, tsvPath)
+	fmt.Printf("\tIf your host is linux: ssh %s@%s \"%s %s\" | xclip -selection clipboard\n\n", serverUser, serverIP, catCmd, tsvPath)
 	fmt.Printf("\tIf your host is windows: ssh %s@%s \"%s %s\" | clip.exe\n\n\n", serverUser, serverIP, catCmd, tsvPath)
 }

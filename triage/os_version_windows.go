@@ -8,7 +8,7 @@ import (
 )
 
 func runOSVersionTriage() string {
-	return parseOSVersion(util.RunAndPrintScript("triage/os_version.ps1")) + "\t"
+	return parseOSVersion(util.RunAndPrintScript("triage/os_version.ps1"))
 }
 
 func parseOSVersion(result string) string {
@@ -25,5 +25,5 @@ func parseOSVersion(result string) string {
 		}
 	}
 
-	return fmt.Sprintf("%s\t%s", osName, osVersion)
+	return fmt.Sprintf("\"%s\n%s\"", osName, osVersion)
 }

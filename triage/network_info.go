@@ -9,14 +9,13 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-func runNetworkTriage() string {
-	var hostname = getAndPrintHostname()
-	var csv = hostname + "\t"
-	csv = csv + printDNSName(hostname) + "\t"
+func runNetworkTriage() (string, string) {
+	hostname := getAndPrintHostname()
+	csv := printDNSName(hostname) + "\t"
 	csv = csv + printIPAddrs() + "\t"
 	csv = csv + printNetstat()
 	fmt.Println()
-	return csv
+	return hostname, csv
 }
 
 func getAndPrintHostname() string {
