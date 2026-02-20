@@ -59,7 +59,7 @@ func printUsers() string {
 	userListStr := make([][]string, len(userList))
 	for i, u := range userList {
 		userListStr[i] = []string{u.name, u.uid, u.gid, u.shell}
-		result += fmt.Sprintf("%s (UID: %s, GID: %s, Shell: %s) \n", u.name, u.uid, u.gid, u.shell)
+		result += fmt.Sprintf("%s (%s, %s, %s) \n", u.name, u.uid, u.gid, u.shell)
 	}
 
 	t := util.StyledTable().Rows(userListStr...)
