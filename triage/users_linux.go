@@ -59,12 +59,12 @@ func printUsers() string {
 	userListStr := make([][]string, len(userList))
 	for i, u := range userList {
 		userListStr[i] = []string{u.name, u.uid, u.gid, u.shell}
-		result += fmt.Sprintf("%s,%s,%s,%s; ", u.name, u.uid, u.gid, u.shell)
+		result += fmt.Sprintf("%s (UID: %s, GID: %s, Shell: %s) \n", u.name, u.uid, u.gid, u.shell)
 	}
 
 	t := util.StyledTable().Rows(userListStr...)
 	fmt.Println(t.Render())
-	return result
+	return "\"" + result + "\""
 }
 
 func printGroups() string {
@@ -100,10 +100,10 @@ func printGroups() string {
 	groupListStr := make([][]string, len(groupList))
 	for i, g := range groupList {
 		groupListStr[i] = []string{g.name, g.gid, strings.Join(g.users, ",")}
-		result += fmt.Sprintf("%s,%s,%s; ", g.name, g.gid, strings.Join(g.users, ";"))
+		result += fmt.Sprintf("%s (GID: %s) - %s\n\n ", g.name, g.gid, strings.Join(g.users, ", "))
 	}
 
 	t := util.StyledTable().Headers("group", "gid", "users").Rows(groupListStr...)
 	fmt.Println(t.Render())
-	return result
+	return "\"" + result + "\""
 }

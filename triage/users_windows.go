@@ -63,14 +63,15 @@ func parseUsersAndGroups(result string) string {
 
 	var groupParts []string
 	for _, g := range groupOrder {
-		groupParts = append(groupParts, fmt.Sprintf("%s: %s", g, strings.Join(groups[g], ", ")))
+		groupParts = append(groupParts, fmt.Sprintf("%s \n\t%s", g, strings.Join(groups[g], "\n\t")))
 	}
 
-	return fmt.Sprintf("Enabled Local Users %s: %s; Disabled Local Users: %s: %s\t%s",
+	return fmt.Sprintf("\"Enabled Local Users%s \n\t%s\n"+
+		"\nDisabled Local Users %s: \n\t%s\"",
 		enabledCount,
-		strings.Join(enabled, ", "),
+		strings.Join(enabled, "\n\t"),
 		disabledCount,
-		strings.Join(disabled, ", "),
-		strings.Join(groupParts, "; "),
-	)
+		strings.Join(disabled, "\n\t"),
+	) + "\t" + fmt.Sprintf("\"%s\"", strings.Join(groupParts, "\n\n"))
+
 }

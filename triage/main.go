@@ -40,6 +40,10 @@ func Run() {
 		// ignore error
 	}
 
+	if _, err := file.Write([]byte(getDomainInfo())); err != nil {
+		// ignore error
+	}
+
 	errF := file.Close()
 	if errF != nil {
 

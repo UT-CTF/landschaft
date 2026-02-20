@@ -2,7 +2,6 @@ package triage
 
 import (
 	"fmt"
-	"os/exec"
 	"strings"
 
 	"github.com/UT-CTF/landschaft/util"
@@ -10,7 +9,6 @@ import (
 
 func runFirewallTriage() string {
 	result := parseFirewall(util.RunAndPrintScript("triage/firewall.ps1")) + "\t"
-	result += getDomainStatus() + "\t"
 	return result
 }
 
@@ -75,35 +73,24 @@ func parseFirewall(result string) string {
 	var parts []string
 	for _, i := range interfaces {
 		enabled := "Disabled"
+		check := false
 		if profileEnabled[i.category] {
 			enabled = "Enabled"
+			check = true
 		}
 		state := profileState[i.category]
 		policy := profilePolicy[i.category]
-		parts = append(parts, fmt.Sprintf("%s - %s - %s (%s; State %s; Firewall Policy: %s)",
-			i.name, i.alias, i.category, enabled, state, policy))
-	}
 
-	return strings.Join(parts, "; ")
-}
-
-func getDomainStatus() string {
-	out, err := exec.Command("wmic", "computersystem", "get", "domain").Output()
-	if err != nil {
-		return "Not Domain Joined"
-	}
-
-	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
-	for _, line := range lines {
-		line = strings.TrimSpace(line)
-		if line == "" || line == "Domain" {
-			continue
+		if check {
+			parts = append(parts, fmt.Sprintf("%s - %s \n\t%s - %s \n\tState %s \n\tFirewall Policy: %s",
+				i.name, i.alias, i.category, enabled, state, policy))
+		} else {
+			parts = append(parts, fmt.Sprintf("%s - %s \n\t%s - %s",
+				i.name, i.alias, i.category, enabled))
 		}
-		if line == "WORKGROUP" {
-			return "Not Domain Joined"
-		}
-		return line
+
 	}
 
-	return "Not Domain Joined"
+	return "\"" + strings.Join(parts, "\n\n ") + "\""
+
 }

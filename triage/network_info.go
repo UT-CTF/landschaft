@@ -36,20 +36,25 @@ func printDNSName(hostname string) string {
 		fmt.Println("error looking up hostname")
 		return "err"
 	}
+	var check = false
 	for _, addr := range addrs {
 		names, err := net.LookupAddr(addr)
 		if err != nil {
 			return "N/A"
 		}
 		for _, name := range names {
-			if name == "localhost" {
+			if name == "localhost" || addr == "127.0.1.1" || addr == "127.0.0.1" {
 				continue
 			}
 			fmt.Printf("FQDN for %s: %s\n", addr, name)
-			result = result + addr + ": " + name + ", "
+			result = result + addr + ": " + name + "\n"
+			check = true
 		}
 	}
-	return result
+	if !check {
+		return "N/A"
+	}
+	return "\"" + result + "\""
 }
 
 func printIPAddrs() string {
@@ -83,11 +88,14 @@ func printIPAddrs() string {
 				ipv6Addrs = append(ipv6Addrs, ipNet.IP.String())
 			}
 		}
-		result = printAddrs(ipv4Addrs, "  IPv4 Addresses:")
-		result = result + "\t" + printAddrs(ipv6Addrs, "  IPv6 Addresses:")
-		return result
+		temp := printAddrs(ipv4Addrs, "  IPv4 Addresses:") + "\n\n"
+		if len(temp) > 2 {
+			result += iface.Name + temp
+		}
+		//result = result + "\t" + printAddrs(ipv6Addrs, "  IPv6 Addresses:")
+		printAddrs(ipv6Addrs, "  IPv6 Addresses:")
 	}
-	return result
+	return "\"" + result + "\""
 }
 
 func printAddrs(list []string, msg string) string {
@@ -96,7 +104,7 @@ func printAddrs(list []string, msg string) string {
 		fmt.Println("  ", msg)
 		for _, ip := range list {
 			fmt.Println("   -", ip)
-			result = result + ip + ", "
+			result += fmt.Sprintf("\n\t%s", ip)
 		}
 	}
 	return result
@@ -109,7 +117,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) string {
 		for _, e := range sockets {
 			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
 				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
-				result += fmt.Sprintf("%s %s %d %s;", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+				result += fmt.Sprintf("%d\t%s\n", e.LocalAddr.Port, e.Process)
 			}
 		}
 	}
@@ -118,7 +126,7 @@ func printSockets(title string, sockets []netstat.SockTabEntry) string {
 		result = "NONE"
 	}
 
-	return result + "\t"
+	return "\"" + result + "\"\t"
 }
 
 func printNetstat() string {
@@ -143,17 +151,17 @@ func printNetstat() string {
 	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		result += "err"
+		//result += "err"
 	} else {
-		result += printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
+		printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
 	}
 	// Get UDP IPv6 sockets
 	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		result += "err"
+		//result += "err"
 	} else {
-		result += printSockets("\nUDP IPv6 Sockets:", udp6Socks)
+		printSockets("\nUDP IPv6 Sockets:", udp6Socks)
 	}
 	return result
 }
