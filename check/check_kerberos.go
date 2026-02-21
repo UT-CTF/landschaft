@@ -35,26 +35,26 @@ credentials are valid. Obtains a Ticket Granting Ticket (TGT) to verify authenti
 				log.Error("Kerberos batch check failed", "error", err)
 				os.Exit(1)
 			}
-			
+
 			// Print results
 			fmt.Printf("\n=== Kerberos Batch Check Results ===\n")
 			fmt.Printf("Total: %d | Valid: %d | Invalid: %d\n\n",
 				results.Total, results.Valid, results.Invalid)
-			
+
 			if len(results.ValidCreds) > 0 {
 				fmt.Println("✓ Valid credentials:")
 				for _, cred := range results.ValidCreds {
 					fmt.Printf("  • %s\n", cred)
 				}
 			}
-			
+
 			if len(results.InvalidCreds) > 0 {
 				fmt.Println("\n✗ Invalid credentials:")
 				for _, cred := range results.InvalidCreds {
 					fmt.Printf("  • %s\n", cred)
 				}
 			}
-			
+
 			if results.Invalid > 0 {
 				os.Exit(2)
 			}
@@ -165,7 +165,7 @@ func checkKerberos(kdc, realm, fqdn, username, password string, timeoutSec int) 
 	}
 
 	fmt.Println("✓ Ticket verification successful")
-	
+
 	// Destroy the session
 	cl.Destroy()
 

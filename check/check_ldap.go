@@ -32,26 +32,26 @@ Performs a simple bind operation and optionally searches the directory.`,
 				log.Error("LDAP batch check failed", "error", err)
 				os.Exit(1)
 			}
-			
+
 			// Print results
 			fmt.Printf("\n=== LDAP Batch Check Results ===\n")
 			fmt.Printf("Total: %d | Valid: %d | Invalid: %d\n\n",
 				results.Total, results.Valid, results.Invalid)
-			
+
 			if len(results.ValidCreds) > 0 {
 				fmt.Println("✓ Valid credentials:")
 				for _, cred := range results.ValidCreds {
 					fmt.Printf("  • %s\n", cred)
 				}
 			}
-			
+
 			if len(results.InvalidCreds) > 0 {
 				fmt.Println("\n✗ Invalid credentials:")
 				for _, cred := range results.InvalidCreds {
 					fmt.Printf("  • %s\n", cred)
 				}
 			}
-			
+
 			if results.Invalid > 0 {
 				os.Exit(2)
 			}
@@ -90,7 +90,7 @@ func checkLDAP(server, username, password string, useTLS bool, timeoutSec int) e
 	// Always connect on port 389 initially
 	port := "389"
 	address := fmt.Sprintf("%s:%s", server, port)
-	
+
 	if useTLS {
 		fmt.Printf("Connecting to ldap://%s (will upgrade to TLS via StartTLS)...\n", address)
 	} else {
@@ -116,7 +116,7 @@ func checkLDAP(server, username, password string, useTLS bool, timeoutSec int) e
 		tlsConfig := &tls.Config{
 			InsecureSkipVerify: true,
 		}
-		
+
 		err = conn.StartTLS(tlsConfig)
 		if err != nil {
 			return fmt.Errorf("failed to start TLS: %w", err)
@@ -156,7 +156,7 @@ func checkLDAP(server, username, password string, useTLS bool, timeoutSec int) e
 	// If we discovered a domain, try Active Directory formats
 	if domain != "" {
 		bindDNs = append([]string{
-			fmt.Sprintf("%s@%s", username, domain),           // UserPrincipalName format (user@domain.com)
+			fmt.Sprintf("%s@%s", username, domain),                              // UserPrincipalName format (user@domain.com)
 			fmt.Sprintf("%s\\%s", domain[:len(domain)-len(".local")], username), // DOMAIN\user format (for .local domains)
 		}, bindDNs...)
 	}
@@ -172,7 +172,7 @@ func checkLDAP(server, username, password string, useTLS bool, timeoutSec int) e
 		bindErr = conn.Bind(bindDN, password)
 		if bindErr == nil {
 			fmt.Printf("✓ Authentication successful (bind DN: %s)\n", bindDN)
-			
+
 			// Perform a simple search to verify the connection is fully functional
 			verifyRequest := ldap.NewSearchRequest(
 				"",
