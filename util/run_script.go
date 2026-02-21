@@ -7,14 +7,15 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-func RunAndPrintScript(scriptPath string, args ...string) {
+func RunAndPrintScript(scriptPath string, args ...string) string {
 	fmt.Println("Executing " + scriptPath)
 	scriptOut, err := embed.ExecuteScript(scriptPath, false, args...)
 	if err != nil {
 		log.Error("Failed to execute script", "script", scriptPath, "err", err)
-		return
+		return "err"
 	}
 	fmt.Println(scriptOut)
+	return scriptOut
 }
 
 func RunAndRedirectScript(scriptPath string, args ...string) {
