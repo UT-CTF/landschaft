@@ -100,6 +100,29 @@ func installSysinternals(targetDir string) {
 	fmt.Println("Sysinternals Suite installed successfully")
 }
 
+// EnsureSysinternals ensures the Sysinternals suite is present at targetDir. If not
+// present it will download and extract it. Returns the path to the directory or an
+// error string printed to stdout.
+func EnsureSysinternals(targetDir string) error {
+	// If target exists and looks populated, assume it's fine
+	info, err := os.Stat(targetDir)
+	if err == nil && info.IsDir() {
+		// quick check: expect autorunsc64.exe to exist
+		if _, err := os.Stat(filepath.Join(targetDir, "autorunsc64.exe")); err == nil {
+			return nil
+		}
+	}
+
+	fmt.Printf("Sysinternals not found at %s, downloading and extracting...\n", targetDir)
+	installSysinternals(targetDir)
+
+	// final check
+	if _, err := os.Stat(filepath.Join(targetDir, "autorunsc64.exe")); err != nil {
+		return fmt.Errorf("sysinternals extraction failed or autorunsc64.exe missing: %w", err)
+	}
+	return nil
+}
+
 // func installPython() {
 // 	fmt.Println("Not implemented")
 // }

@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"github.com/UT-CTF/landschaft/misc"
 	"github.com/UT-CTF/landschaft/util"
 	"github.com/spf13/cobra"
 )
@@ -37,7 +38,8 @@ func baselineServices(cmd *cobra.Command, cfg baselineConfig) {
 			_ = cmd.Usage()
 			return
 		}
-		compareServices(cfg.files[0], cfg.files[1])
+		// Allow comparing directories which contain CSVs
+		compareCSVDirs(cfg.files[0], cfg.files[1])
 	} else {
 		fmt.Println("Invalid options")
 	}
@@ -62,7 +64,17 @@ func createBaseline(csvPath string) {
 		fmt.Println("Could not get absolute path: ", err)
 		return
 	}
-	util.RunAndPrintScript("baseline/services.ps1", "-ExportPath", fmt.Sprintf("'%s'", csvPath))
+
+	// Ensure sysinternals are available at C:\\ProgramData\\landschaft\\sysinternals
+	siPath := `C:\\ProgramData\\landschaft\\sysinternals`
+	if err := misc.EnsureSysinternals(siPath); err != nil {
+		fmt.Println("Warning: could not ensure sysinternals: ", err)
+		// continue; autoruns collection is optional per the PowerShell script
+	}
+
+	// Use the new embedded baseline.ps1 for full baseline collection. Pass the Sysinternals path
+	// so the script can use autorunsc64 if available.
+	util.RunAndPrintScript("embed/windows/baseline/baseline.ps1", "-BaselinePath", fmt.Sprintf("'%s'", filepath.Dir(csvPath)), "-SysinternalsPath", fmt.Sprintf("'%s'", siPath))
 }
 
 func compareServices(csvPath1 string, csvPath2 string) {
