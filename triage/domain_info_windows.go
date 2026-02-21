@@ -1,6 +1,9 @@
 package triage
 
-import "os/exec"
+import (
+	"os/exec"
+	"strings"
+)
 
 func getDomainInfo() string {
 	out, err := exec.Command("wmic", "computersystem", "get", "domain").Output()
