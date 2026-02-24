@@ -2,9 +2,11 @@ package baseline
 
 import (
 	"fmt"
+	"os"
 	"os/exec"
 	"path/filepath"
 	"strings"
+	"time"
 
 	"github.com/UT-CTF/landschaft/misc"
 	"github.com/UT-CTF/landschaft/util"
@@ -18,14 +20,24 @@ func setupCreateCmd(cmd *cobra.Command) {
 	}
 
 	createAllCmd := &cobra.Command{
-		Use:     "all <output-dir>",
-		Short:   "Create all baselines into a directory",
-		Long:    "Create all baselines (services, processes, autoruns, users, adobjects, ports) and save CSV files into the provided output directory.",
-		Args:    cobra.ExactArgs(1),
-		Example: "  landschaft baseline create all C:\\baselines",
+		Use:   "all",
+		Short: "Create all baselines into a directory",
+		Long:  "Create all baselines (services, processes, autoruns, users, adobjects, ports) and save CSV files into the provided output directory. Use -o/--output to specify the output directory; if omitted a new directory named baseline-MMDD-HHMM will be created in the current working directory.",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			out := args[0]
+			out := ""
+			// output flag selects the output folder
+			if of, _ := cmd.Flags().GetString("output"); of != "" {
+				out = of
+			}
+			if out == "" {
+				// create default folder baseline-MMDD-HHMM in cwd
+				now := time.Now()
+				out = fmt.Sprintf("baseline-%02d%02d-%02d%02d", int(now.Month()), now.Day(), now.Hour(), now.Minute())
+			}
+			// ensure absolute path and create directory
 			out, _ = filepath.Abs(out)
+			_ = os.MkdirAll(out, 0755)
 			_ = misc.EnsureSysinternals(sysinternalsDirectory)
 			componentList := localScripts
 			if checkIfDomainController() {
@@ -39,23 +51,31 @@ func setupCreateCmd(cmd *cobra.Command) {
 		},
 	}
 	createCmd.AddCommand(createAllCmd)
+	createAllCmd.Flags().StringP("output", "o", "", "Custom output folder name")
 
 	for name := range baselineComponents {
 		cmdC := &cobra.Command{
-			Use:   name + " <baseline-dir>",
+			Use:   name,
 			Short: fmt.Sprintf("Create %s baseline", name),
-			Args:  cobra.ExactArgs(1),
+			Args:  cobra.NoArgs,
 			Run: func(cmd *cobra.Command, args []string) {
-				out := args[0]
+				out, _ := cmd.Flags().GetString("output")
+				if out == "" {
+					// create default folder baseline-MMDD-HHMM in cwd
+					now := time.Now()
+					out = fmt.Sprintf("baseline-%02d%02d-%02d%02d", int(now.Month()), now.Day(), now.Hour(), now.Minute())
+				}
 				out, err := filepath.Abs(out)
 				if err != nil {
 					fmt.Printf("Error getting absolute path for output directory: %v\n", err)
 					return
 				}
+				_ = os.MkdirAll(out, 0755)
 				createSingleBaseline(name, out)
 			},
 		}
 
+		cmdC.Flags().StringP("output", "o", "", "Output folder for this baseline (defaults to timestamped folder)")
 		createCmd.AddCommand(cmdC)
 	}
 

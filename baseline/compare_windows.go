@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"regexp"
 	"slices"
 	"sort"
 	"strings"
@@ -19,30 +20,62 @@ func setupCompareCmd(cmd *cobra.Command) {
 	}
 
 	compareAllCmd := &cobra.Command{
-		Use:   "all <baselineA> <baselineB>",
+		Use:   "all",
 		Short: "Compare two baseline directories",
-		Long:  "Compare two directories produced by 'baseline create all' and report added/removed/changed entries for each component.",
-		Args:  cobra.ExactArgs(2),
+		Long:  "Compare two directories produced by 'baseline create all' and report added/removed/changed entries for each component. Baselines must be specified via flags -a/--baseline-a and -b/--baseline-b or will be discovered automatically by filename.",
+		Args:  cobra.NoArgs,
 		Run: func(cmd *cobra.Command, args []string) {
-			compareCSVDirs(args[0], args[1])
+			dirA, _ := cmd.Flags().GetString("baseline-a")
+			dirB, _ := cmd.Flags().GetString("baseline-b")
+			if dirA == "" || dirB == "" {
+				foundA, foundB, err := findLatestBaselinesByName(".")
+				if err != nil {
+					fmt.Printf("Error finding latest baselines: %v\n", err)
+					return
+				}
+				dirA = foundA
+				dirB = foundB
+				fmt.Printf(`Comparing baselines: "%s" with "%s"`, dirA, dirB)
+				fmt.Println()
+			}
+			compareCSVDirs(dirA, dirB)
 		},
 	}
 	compareCmd.AddCommand(compareAllCmd)
+	compareAllCmd.Flags().StringP("baseline-a", "a", "", "Baseline A directory")
+	compareAllCmd.Flags().StringP("baseline-b", "b", "", "Baseline B directory")
+	compareAllCmd.MarkFlagsRequiredTogether("baseline-a", "baseline-b")
 
 	for name := range baselineComponents {
 		cmdCmp := &cobra.Command{
-			Use:   name + " <baselineA> <baselineB>",
+			Use:   name,
 			Short: fmt.Sprintf("Compare %s baselines", name),
 			Long:  fmt.Sprintf("Compare the %s.csv files in two baseline directories and report added/removed/changed entries.", name),
-			Args:  cobra.ExactArgs(2),
+			Args:  cobra.NoArgs,
 			Run: func(cmd *cobra.Command, args []string) {
-				err := compareCSVFiles(fmt.Sprintf("%s.csv", name), args[0], args[1])
+				dirA, _ := cmd.Flags().GetString("baseline-a")
+				dirB, _ := cmd.Flags().GetString("baseline-b")
+				if dirA == "" || dirB == "" {
+					foundA, foundB, err := findLatestBaselinesByName(".")
+					if err != nil {
+						fmt.Printf("Error finding latest baselines: %v\n", err)
+						return
+					}
+					dirA = foundA
+					dirB = foundB
+					fmt.Printf(`Comparing baselines: "%s" with "%s"`, dirA, dirB)
+					fmt.Println()
+				}
+				err := compareCSVFiles(fmt.Sprintf("%s.csv", name), dirA, dirB)
 				if err != nil {
 					fmt.Printf("Error comparing %s: %v\n", name, err)
 				}
 			},
 		}
 
+		cmdCmp.Flags().StringP("baseline-a", "a", "", "Baseline A directory")
+		cmdCmp.Flags().StringP("baseline-b", "b", "", "Baseline B directory")
+		cmdCmp.MarkFlagsRequiredTogether("baseline-a", "baseline-b")
 		compareCmd.AddCommand(cmdCmp)
 	}
 
@@ -157,6 +190,33 @@ func keyColumnsForFile(file string) []string {
 	default:
 		return nil
 	}
+}
+
+// findLatestBaselines scans baseDir for directories named baseline-MMDD-HHMM and returns the two
+// most recent directories by filename ordering (latest, previous) based on MMDD-HHMM parsed from the name.
+func findLatestBaselinesByName(baseDir string) (string, string, error) {
+	re := regexp.MustCompile(`^baseline-\d{4}-\d{4}$`)
+	entries, err := os.ReadDir(baseDir)
+	if err != nil {
+		return "", "", fmt.Errorf("could not read base dir %s: %v", baseDir, err)
+	}
+	candidates := []string{}
+	for _, e := range entries {
+		if !e.IsDir() {
+			continue
+		}
+		name := e.Name()
+		if re.MatchString(name) {
+			candidates = append(candidates, name)
+		}
+	}
+	if len(candidates) < 2 {
+		return "", "", fmt.Errorf("not enough baseline folders found in %s", baseDir)
+	}
+
+	sort.Strings(candidates)
+	nts := candidates[len(candidates)-2:]
+	return filepath.Join(baseDir, nts[0]), filepath.Join(baseDir, nts[1]), nil
 }
 
 func loadCSVWithKey(path string, keyCols []string) (map[string]map[string]string, error) {
