@@ -14,4 +14,4 @@ Get-ADObject -Filter * -Properties * | ForEach-Object {
         DistinguishedName = $_.DistinguishedName
         ObjectClass    = $_.ObjectClass
     }
-} | Sort-Object Name | Export-Csv "$BaselinePath\adobjects.csv" -NoTypeInformation
+} | Sort-Object Name | Export-Csv "$BaselinePath\ad-objects.csv" -NoTypeInformation

@@ -9,7 +9,7 @@ if (-not (Test-Path $BaselinePath)) {
     New-Item -ItemType Directory -Path $BaselinePath | Out-Null
 }
 
-& "$SysinternalsPath\autorunsc64.exe" -a * -x * -h -nobanner > "$BaselinePath\autoruns.xml"
+& "$SysinternalsPath\autorunsc64.exe" -accepteula -a * -x * -h -nobanner > "$BaselinePath\autoruns.xml"
 $xml = [xml](Get-Content "$BaselinePath\autoruns.xml")
 $xml.autoruns.item | ForEach-Object {
     [PSCustomObject]@{

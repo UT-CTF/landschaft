@@ -5,72 +5,142 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"slices"
 	"sort"
 	"strings"
+
+	"github.com/spf13/cobra"
 )
 
-// compareCSVDirs compares two baseline directories. Each directory is expected to
-// contain CSV files named services.csv, processes.csv, autoruns.csv, users.csv,
-// adobjects.csv, ports.csv. The function will print added/removed/changed items
-// per-file using component-specific primary keys and prints full objects for
-// additions/removals.
+func setupCompareCmd(cmd *cobra.Command) {
+	compareCmd := &cobra.Command{
+		Use:   "compare",
+		Short: "Compare baselines",
+	}
+
+	compareAllCmd := &cobra.Command{
+		Use:   "all <baselineA> <baselineB>",
+		Short: "Compare two baseline directories",
+		Long:  "Compare two directories produced by 'baseline create all' and report added/removed/changed entries for each component.",
+		Args:  cobra.ExactArgs(2),
+		Run: func(cmd *cobra.Command, args []string) {
+			compareCSVDirs(args[0], args[1])
+		},
+	}
+	compareCmd.AddCommand(compareAllCmd)
+
+	for name := range baselineComponents {
+		cmdCmp := &cobra.Command{
+			Use:   name + " <baselineA> <baselineB>",
+			Short: fmt.Sprintf("Compare %s baselines", name),
+			Long:  fmt.Sprintf("Compare the %s.csv files in two baseline directories and report added/removed/changed entries.", name),
+			Args:  cobra.ExactArgs(2),
+			Run: func(cmd *cobra.Command, args []string) {
+				err := compareCSVFiles(fmt.Sprintf("%s.csv", name), args[0], args[1])
+				if err != nil {
+					fmt.Printf("Error comparing %s: %v\n", name, err)
+				}
+			},
+		}
+
+		compareCmd.AddCommand(cmdCmp)
+	}
+
+	cmd.AddCommand(compareCmd)
+}
+
+func getAllCSVFiles(dir string) ([]string, error) {
+	dir, err := filepath.Abs(dir)
+	if err != nil {
+		return nil, fmt.Errorf("could not get absolute path of %s: %v", dir, err)
+	}
+	files := []string{}
+	dirEntries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil, fmt.Errorf("could not read directory %s: %v", dir, err)
+	}
+	for _, entry := range dirEntries {
+		if !entry.IsDir() && strings.HasSuffix(entry.Name(), ".csv") {
+			files = append(files, entry.Name())
+		}
+	}
+	return files, nil
+}
+
+func compareCSVFiles(fileName, dirA, dirB string) error {
+	fmt.Println()
+	fmt.Println(strings.Repeat("=", 60))
+	fmt.Println()
+
+	keyCols := keyColumnsForFile(fileName)
+	pathA := filepath.Join(dirA, fileName)
+	pathB := filepath.Join(dirB, fileName)
+	mapA, err := loadCSVWithKey(pathA, keyCols)
+	if err != nil {
+		return fmt.Errorf("could not load %s: %v", pathA, err)
+	}
+	mapB, err := loadCSVWithKey(pathB, keyCols)
+	if err != nil {
+		return fmt.Errorf("could not load %s: %v", pathB, err)
+	}
+
+	fmt.Printf("Comparing %s\n", fileName)
+
+	addedKeys, removedKeys, changed := diffMaps(mapA, mapB)
+
+	if len(addedKeys) > 0 {
+		sort.Strings(addedKeys)
+		fmt.Printf("Added in %s:\n", dirB)
+		for _, k := range addedKeys {
+			fmt.Printf("\t%s\n", formatObject(k, mapB[k]))
+		}
+	}
+	if len(removedKeys) > 0 {
+		sort.Strings(removedKeys)
+		fmt.Printf("Removed from %s:\n", dirB)
+		for _, k := range removedKeys {
+			fmt.Printf("\t%s\n", formatObject(k, mapA[k]))
+		}
+	}
+	if len(changed) > 0 {
+		fmt.Println("Changed entries:")
+		for _, c := range changed {
+			fmt.Printf("\t%s\n", c)
+		}
+	}
+	return nil
+}
+
 func compareCSVDirs(dirA, dirB string) {
-	dirA, _ = filepath.Abs(dirA)
-	dirB, _ = filepath.Abs(dirB)
+	filesA, err := getAllCSVFiles(dirA)
+	if err != nil {
+		fmt.Printf("Error getting CSV files from directory %s: %v\n", dirA, err)
+		return
+	}
+	filesB, err := getAllCSVFiles(dirB)
+	if err != nil {
+		fmt.Printf("Error getting CSV files from directory %s: %v\n", dirB, err)
+		return
+	}
 
-	files := []string{"services.csv", "processes.csv", "autoruns.csv", "users.csv", "adobjects.csv", "ports.csv"}
-
-	for _, f := range files {
-		pathA := filepath.Join(dirA, f)
-		pathB := filepath.Join(dirB, f)
-
-		keyCols := keyColumnsForFile(f)
-		mA, errA := loadCSVWithKey(pathA, keyCols)
-		mB, errB := loadCSVWithKey(pathB, keyCols)
-
-		fmt.Println(strings.Repeat("=", 60))
-		fmt.Printf("Comparing %s\n", f)
-
-		if errA != nil {
-			fmt.Printf("Could not load %s: %v\n", pathA, errA)
+	sharedFiles := []string{}
+	for _, fA := range filesA {
+		if slices.Contains(filesB, fA) {
+			sharedFiles = append(sharedFiles, fA)
 		}
-		if errB != nil {
-			fmt.Printf("Could not load %s: %v\n", pathB, errB)
-		}
-		if errA != nil || errB != nil {
-			continue
-		}
+	}
 
-		addedKeys, removedKeys, changed := diffMaps(mA, mB)
-
-		if len(addedKeys) > 0 {
-			sort.Strings(addedKeys)
-			fmt.Printf("Added in %s:\n", dirB)
-			for _, k := range addedKeys {
-				fmt.Printf("\t%s\n", formatObject(k, mB[k]))
-			}
-		}
-		if len(removedKeys) > 0 {
-			sort.Strings(removedKeys)
-			fmt.Printf("Removed from %s:\n", dirB)
-			for _, k := range removedKeys {
-				fmt.Printf("\t%s\n", formatObject(k, mA[k]))
-			}
-		}
-		if len(changed) > 0 {
-			fmt.Println("Changed entries:")
-			for _, c := range changed {
-				fmt.Printf("\t%s\n", c)
-			}
+	for _, f := range sharedFiles {
+		err := compareCSVFiles(f, dirA, dirB)
+		if err != nil {
+			fmt.Printf("Error comparing file %s: %v\n", f, err)
 		}
 	}
 }
 
-// keyColumnsForFile returns the list of CSV column names to be used as the
-// primary key for a given file name.
 func keyColumnsForFile(file string) []string {
 	switch file {
-	case "adobjects.csv":
+	case "ad-objects.csv":
 		return []string{"DistinguishedName"}
 	case "autoruns.csv":
 		return []string{"Location", "Name", "LaunchString"}
@@ -80,15 +150,15 @@ func keyColumnsForFile(file string) []string {
 		return []string{"Name", "Path"}
 	case "services.csv":
 		return []string{"Name"}
-	case "users.csv":
+	case "ad-users.csv":
 		return []string{"SamAccountName"}
+	case "local-users.csv":
+		return []string{"Name"}
 	default:
 		return nil
 	}
 }
 
-// loadCSVWithKey loads a CSV into a map keyed by the composite key defined by
-// keyCols. If keyCols is nil or empty, the first column is used as the key.
 func loadCSVWithKey(path string, keyCols []string) (map[string]map[string]string, error) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -129,7 +199,7 @@ func loadCSVWithKey(path string, keyCols []string) (map[string]map[string]string
 				vals = append(vals, "")
 			}
 		}
-		return strings.Join(vals, "|")
+		return strings.Join(vals, " | ")
 	}
 
 	for _, row := range recs[1:] {
@@ -150,13 +220,10 @@ func loadCSVWithKey(path string, keyCols []string) (map[string]map[string]string
 	return out, nil
 }
 
-// formatObject returns a single-line representation of the object's fields in
-// key:value pairs separated by ", ".
 func formatObject(key string, obj map[string]string) string {
 	if obj == nil {
 		return key
 	}
-	// pretty multi-line output: key on first line, then each field on its own indented line
 	lines := []string{key}
 	keys := make([]string, 0, len(obj))
 	for k := range obj {
@@ -169,14 +236,7 @@ func formatObject(key string, obj map[string]string) string {
 	return strings.Join(lines, "\n")
 }
 
-// loadGenericCSV remains as a convenience wrapper using first-column key.
-func loadGenericCSV(path string) (map[string]map[string]string, error) {
-	return loadCSVWithKey(path, nil)
-}
-
-// diffMaps returns added keys (in b but not a), removed keys (in a but not b), and
-// changed descriptions for keys present in both where values differ.
-func diffMaps(a, b map[string]map[string]string) (added, removed []string, changed []string) {
+func diffMaps(a, b map[string]map[string]string) (added []string, removed []string, changed []string) {
 	for k := range a {
 		if _, ok := b[k]; !ok {
 			removed = append(removed, k)

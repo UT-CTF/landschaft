@@ -16,4 +16,4 @@ Get-ADUser -Filter * -Properties * | ForEach-Object {
         Enabled        = $_.Enabled
         Groups         = $groupNames -join ';'
     }
-} | Sort-Object Name | Export-Csv "$BaselinePath\users.csv" -NoTypeInformation
+} | Sort-Object Name | Export-Csv "$BaselinePath\ad-users.csv" -NoTypeInformation
