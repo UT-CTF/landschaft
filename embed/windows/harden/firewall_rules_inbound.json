@@ -207,5 +207,12 @@
         "Direction": "Inbound",
         "Action": "Allow",
         "Protocol": "ICMPv4"
+    },
+    {
+        "DisplayName": "NetBIOS Legacy SMB (TCP 139 Inbound)",
+        "Direction": "Inbound",
+        "Action": "Allow",
+        "LocalPort": "139",
+        "Protocol": "TCP"
     }
 ]

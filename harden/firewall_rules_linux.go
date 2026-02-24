@@ -1,13 +1,7 @@
 package harden
 
-func generateFirewallRules(outbound bool) {
-	// placeholder
-}
+import "github.com/spf13/cobra"
 
-func applyFirewallRules(rulesFile string, backupPath string, oldRulesFile string, direction string) {
-	// placeholder
-}
-
-func removeOldFirewallRules(oldRulesFile string) {
-	// placeholder
+func setupFirewallCmd(cmd *cobra.Command) {
+	// No firewall rules for Linux yet, so this is a no-op
 }
