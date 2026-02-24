@@ -5,124 +5,138 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
-	"sort"
 	"strings"
 
 	"github.com/UT-CTF/landschaft/embed"
-	"github.com/UT-CTF/landschaft/util"
 	"github.com/charmbracelet/huh"
 	"github.com/spf13/cobra"
 )
 
-const OutboundRulesPath = "firewall_rules_outbound.json"
-const InboundRulesPath = "firewall_rules_inbound.json"
-
-var firewallArgs struct {
-	outbound    bool
-	inbound     bool
-	apply       bool
-	ruleFile    string
-	oldRuleFile string
-	backupPath  string
-	removeOld   bool
-	oldRulesIn  string
+var configFirewallArgs struct {
+	outbound   bool
+	outputPath string
+	skipPrompt bool
 }
 
-var firewallCmd = &cobra.Command{
-	Use:   "firewall",
-	Short: "Setup firewall rules",
-	Run: func(cmd *cobra.Command, args []string) {
-		if firewallArgs.apply {
-			if firewallArgs.inbound == firewallArgs.outbound {
-				fmt.Println("Error: You must specify either --outbound or --inbound, but not both.")
-				cmd.Usage()
-				return
-			}
-
-			direction := "inbound"
-			if firewallArgs.outbound {
-				direction = "outbound"
-			}
-
-			applyFirewallRules(firewallArgs.ruleFile, firewallArgs.backupPath, firewallArgs.oldRuleFile, direction)
-		} else if firewallArgs.removeOld {
-			removeOldFirewallRules(firewallArgs.oldRulesIn)
-		} else {
-			generateFirewallRules(firewallArgs.outbound)
-		}
-	},
+var applyFirewallArgs struct {
+	outbound   bool
+	rulesFile  string
+	backupPath string
 }
 
 func setupFirewallCmd(cmd *cobra.Command) {
-	firewallCmd.Flags().BoolVar(&firewallArgs.outbound, "outbound", false, "Configure/apply outbound rules")
-	firewallCmd.Flags().BoolVar(&firewallArgs.inbound, "inbound", false, "Configure/apply outbound rules")
-	firewallCmd.Flags().BoolVar(&firewallArgs.apply, "apply", false, "Apply the rules")
-	firewallCmd.Flags().StringVarP(&firewallArgs.ruleFile, "file", "f", "", "Path to the rules file")
-	firewallCmd.Flags().StringVarP(&firewallArgs.oldRuleFile, "out", "o", "old_rules.txt", "Path to output old rules after applying new ones")
-	firewallCmd.Flags().StringVarP(&firewallArgs.backupPath, "backup", "b", "firewall_backup.wfw", "Path to backup the current rules")
-	firewallCmd.Flags().BoolVar(&firewallArgs.removeOld, "remove-old", false, "Remove old rules after applying new ones")
-	firewallCmd.Flags().StringVarP(&firewallArgs.oldRulesIn, "old-rules", "i", "", "Path to the old rules file")
+	var firewallCmd = &cobra.Command{
+		Use:   "firewall",
+		Short: "Setup firewall rules",
+	}
 
-	firewallCmd.MarkFlagsRequiredTogether("file", "apply")
-	firewallCmd.MarkFlagsRequiredTogether("remove-old", "old-rules")
-	firewallCmd.MarkFlagsMutuallyExclusive("apply", "remove-old")
-	firewallCmd.MarkFlagsMutuallyExclusive("outbound", "inbound")
+	var firewallConfigCmd = &cobra.Command{
+		Use:   "config",
+		Short: "Configure firewall rules to apply",
+		Run: func(cmd *cobra.Command, args []string) {
+			generateFirewallRules(configFirewallArgs.outbound, configFirewallArgs.outputPath, configFirewallArgs.skipPrompt)
+		},
+	}
+
+	firewallConfigCmd.Flags().BoolVar(&configFirewallArgs.outbound, "outbound", false, "Configure outbound rules instead of inbound")
+	firewallConfigCmd.Flags().StringVarP(&configFirewallArgs.outputPath, "output", "o", "", "Path to output the generated rules")
+	firewallConfigCmd.Flags().BoolVar(&configFirewallArgs.skipPrompt, "skip", false, "Skip the confirmation prompt and select all rules")
+
+	firewallConfigCmd.MarkFlagRequired("output")
+
+	firewallCmd.AddCommand(firewallConfigCmd)
+
+	var firewallApplyCmd = &cobra.Command{
+		Use:   "apply",
+		Short: "Apply firewall rules from a file, create a backup of existing rules, and create a scheduled task to re-apply old rules in 3 minutes",
+		Run: func(cmd *cobra.Command, args []string) {
+			applyFirewallRules(applyFirewallArgs.outbound, applyFirewallArgs.rulesFile, applyFirewallArgs.backupPath)
+		},
+	}
+
+	firewallApplyCmd.Flags().BoolVar(&applyFirewallArgs.outbound, "outbound", false, "Apply outbound rules instead of inbound")
+	firewallApplyCmd.Flags().StringVarP(&applyFirewallArgs.rulesFile, "rules", "f", "", "Path to the firewall rules file")
+	firewallApplyCmd.Flags().StringVarP(&applyFirewallArgs.backupPath, "backup", "b", "firewall_backup.wfw", "Path to backup existing firewall rules")
+
+	firewallApplyCmd.MarkFlagRequired("rules")
+
+	firewallCmd.AddCommand(firewallApplyCmd)
+
+	firewallFinalizeCmd := &cobra.Command{
+		Use:   "finalize",
+		Short: "Finalize firewall rules application by clearing the scheduled task that restores the previous firewall rules",
+		Run: func(cmd *cobra.Command, args []string) {
+			finalizeFirewallRules()
+		},
+	}
+
+	firewallCmd.AddCommand(firewallFinalizeCmd)
 
 	cmd.AddCommand(firewallCmd)
 }
 
-func generateFirewallRules(outbound bool) {
-	var rulesPath = InboundRulesPath
+func generateFirewallRules(outbound bool, outputPath string, skipPrompt bool) {
+	jsonStr := ""
+	err := error(nil)
+
 	if outbound {
-		rulesPath = OutboundRulesPath
+		jsonStr, err = embed.ExecuteScript("harden/get_firewall_rules.ps1", false, "-Outbound")
+	} else {
+		jsonStr, err = embed.ExecuteScript("harden/get_firewall_rules.ps1", false)
 	}
 
-	jsonStr, err := embed.ExecuteScript("harden/firewall.ps1", false, "-RulePath", rulesPath)
 	if err != nil {
 		fmt.Println("Error executing script: ", err)
 		return
 	}
 
-	var rules []map[string]string
-	err = json.Unmarshal([]byte(jsonStr), &rules)
+	var raw []map[string]interface{}
+	err = json.Unmarshal([]byte(jsonStr), &raw)
 	if err != nil {
 		fmt.Println("Error parsing JSON: ", err)
+		fmt.Println("Raw JSON: ", jsonStr)
 		return
 	}
 
-	sort.Slice(rules, func(i, j int) bool {
-		return rules[i]["DisplayName"] < rules[j]["DisplayName"]
-	})
+	var rules []map[string]string
+	for _, item := range raw {
+		converted := make(map[string]string)
+		for k, v := range item {
+			converted[k] = fmt.Sprintf("%v", v)
+		}
+		rules = append(rules, converted)
+	}
+
+	// any rules with enabled set to true should be pre-selected in the form
+	// and then remove the enabled field for all rules since it's not needed for the actual application of the rules
 
 	var selected []int
-
-	ruleSelect := huh.NewMultiSelect[int]().OptionsFunc(func() []huh.Option[int] {
-		var ruleNames []huh.Option[int]
-		for i, rule := range rules {
-			ruleNames = append(ruleNames, huh.NewOption(rule["DisplayName"], i))
+	for i, rule := range rules {
+		if strings.ToLower(rule["Enabled"]) == "true" {
+			selected = append(selected, i)
 		}
-		return ruleNames
-	},
-		nil,
-	).Title("Select Firewall Rules to Enable").
-		Value(&selected)
-
-	var outputPath string
-	defaultPath := rulesPath
-	pathInput := huh.NewInput().Title("Rules file path").Placeholder(defaultPath).Value(&outputPath)
-
-	fullForm := huh.NewForm(
-		huh.NewGroup(ruleSelect, pathInput),
-	)
-	err = fullForm.Run()
-	if err != nil {
-		fmt.Println("Error running form: ", err)
-		return
+		delete(rule, "Enabled")
 	}
 
-	outputPath = strings.TrimSpace(outputPath)
-	if len(outputPath) == 0 {
-		outputPath = defaultPath
+	if !skipPrompt {
+		var options []huh.Option[int]
+		for i, rule := range rules {
+			options = append(options, huh.NewOption(rule["DisplayName"], i))
+		}
+
+		ruleSelect := huh.NewMultiSelect[int]().
+			Options(options...).
+			Title("Select Firewall Rules to Enable").
+			Value(&selected)
+
+		fullForm := huh.NewForm(
+			huh.NewGroup(ruleSelect),
+		)
+		err = fullForm.Run()
+		if err != nil {
+			fmt.Println("Error running form: ", err)
+			return
+		}
 	}
 
 	var rulesToEnable []map[string]string
@@ -151,7 +165,7 @@ func generateFirewallRules(outbound bool) {
 	fmt.Println("Rules written to: ", outputPath)
 }
 
-func applyFirewallRules(rulesFile string, backupPath string, oldRulesFile string, direction string) {
+func applyFirewallRules(outbound bool, rulesFile string, backupPath string) {
 	rulesFile, err := filepath.Abs(rulesFile)
 	if err != nil {
 		fmt.Println("Error getting absolute path: ", err)
@@ -164,41 +178,22 @@ func applyFirewallRules(rulesFile string, backupPath string, oldRulesFile string
 		return
 	}
 
-	oldRulesFile, err = filepath.Abs(oldRulesFile)
+	direction := "Inbound"
+	if outbound {
+		direction = "Outbound"
+	}
+
+	_, err = embed.ExecuteScript("harden/apply_firewall.ps1", true, "-Direction", direction, "-RulesFile", rulesFile, "-BackupFile", backupPath)
 	if err != nil {
-		fmt.Println("Error getting absolute path: ", err)
+		fmt.Println("Error executing script: ", err)
 		return
 	}
-
-	fmt.Println("This will save IDs for all existing rules to a file and apply the selected rules.")
-	fmt.Println("This will also create a backup of the current rules.")
-	fmt.Println("The new rules are in the file: ", rulesFile)
-	fmt.Print("Are you sure you want to continue? (y/n) ")
-	var confirm string
-	fmt.Scanln(&confirm)
-	if confirm != "y" {
-		fmt.Println("Aborting.")
-		return
-	}
-
-	util.RunAndPrintScript("harden/firewall.ps1", "-RulePath", "'"+rulesFile+"'", "-BackupPath", "'"+backupPath+"'", "-OldRulesPath", "'"+oldRulesFile+"'", "-Direction", "'"+direction+"'", "-Apply")
 }
 
-func removeOldFirewallRules(oldRulesFile string) {
-	oldRulesFile, err := filepath.Abs(oldRulesFile)
+func finalizeFirewallRules() {
+	_, err := embed.ExecuteScript("harden/apply_firewall.ps1", true, "-ClearScheduledTask")
 	if err != nil {
-		fmt.Println("Error getting absolute path: ", err)
+		fmt.Println("Error executing script: ", err)
 		return
 	}
-
-	fmt.Println("This will remove ALL the old rules from the system.")
-	fmt.Print("Are you sure you want to continue? (y/n) ")
-	var confirm string
-	fmt.Scanln(&confirm)
-	if confirm != "y" {
-		fmt.Println("Aborting.")
-		return
-	}
-
-	util.RunAndPrintScript("harden/firewall.ps1", "-OldRulesPath", "'"+oldRulesFile+"'", "-Prune")
 }
