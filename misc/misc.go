@@ -9,6 +9,7 @@ import (
 func SetupCommand(cmd *cobra.Command) {
 	setupToolsCommand(cmd)
 	setupExtractCommand(cmd)
+	setupNetflowCommand(cmd)
 }
 
 func Run(cmd *cobra.Command) {
