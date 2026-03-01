@@ -94,10 +94,15 @@ func checkIfDomainController() bool {
 }
 
 func createSingleBaseline(name, baselineDir string) {
+	scriptName, ok := baselineComponents[name]
+	if !ok {
+		fmt.Printf("Unknown baseline component: %s\n", name)
+		return
+	}
 	if name == "autoruns" {
 		_ = misc.EnsureSysinternals(sysinternalsDirectory)
-		util.RunAndRedirectScript(fmt.Sprintf("baseline/%s", baselineComponents[name]), "-BaselinePath", fmt.Sprintf("'%s'", baselineDir), "-SysinternalsPath", fmt.Sprintf("'%s'", sysinternalsDirectory))
+		util.RunAndRedirectScript(fmt.Sprintf("baseline/%s", scriptName), "-BaselinePath", fmt.Sprintf("'%s'", baselineDir), "-SysinternalsPath", fmt.Sprintf("'%s'", sysinternalsDirectory))
 	} else {
-		util.RunAndRedirectScript(fmt.Sprintf("baseline/%s", baselineComponents[name]), "-BaselinePath", fmt.Sprintf("'%s'", baselineDir))
+		util.RunAndRedirectScript(fmt.Sprintf("baseline/%s", scriptName), "-BaselinePath", fmt.Sprintf("'%s'", baselineDir))
 	}
 }

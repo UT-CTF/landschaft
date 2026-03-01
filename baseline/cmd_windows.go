@@ -17,7 +17,7 @@ var baselineComponents = map[string]string{
 	"ports":       "ports.ps1",
 }
 
-var dcScripts = []string{"services", "processes", "autoruns", "ad-users", "adobjects", "ports"}
+var dcScripts = []string{"services", "processes", "autoruns", "ad-users", "ad-objects", "ports"}
 var localScripts = []string{"services", "processes", "autoruns", "local-users", "ports"}
 
 var sysinternalsDirectory = `C:\\ProgramData\\landschaft\\sysinternals`
