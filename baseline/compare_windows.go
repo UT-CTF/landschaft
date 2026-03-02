@@ -187,6 +187,8 @@ func keyColumnsForFile(file string) []string {
 		return []string{"SamAccountName"}
 	case "local-users.csv":
 		return []string{"Name"}
+	case "wmi-bindings.csv":
+		return []string{"Filter", "Consumer"}
 	default:
 		return nil
 	}
