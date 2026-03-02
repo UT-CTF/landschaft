@@ -25,6 +25,10 @@ jobs:
         with:
           go-version: ${{ matrix.version }}
 
+      - name: Install libpcap-dev (Linux only)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt update && sudo apt-get install -y libpcap-dev
+
       - name: Build
         run: go build -v .
 
