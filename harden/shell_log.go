@@ -26,8 +26,11 @@ var configureShellCmd = &cobra.Command{
 			fmt.Println("Error getting shell type")
 			return
 		}
+		if PlanMode {
+			fmt.Printf("Plan: would configure shell logging (dir=%s, backup=%s, shell=%s)\n", filePath, backupPath, shellType)
+			return
+		}
 		configureShell(filePath, backupPath, shellType)
-
 	},
 }
 

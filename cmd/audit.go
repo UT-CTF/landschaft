@@ -4,35 +4,40 @@ Copyright © 2025 NAME HERE <EMAIL ADDRESS>
 package cmd
 
 import (
+	"time"
+
 	"github.com/UT-CTF/landschaft/audit"
 	"github.com/spf13/cobra"
 )
 
+var auditArgs struct {
+	sshd     bool
+	versions bool
+	max      int
+	timeout  time.Duration
+}
+
 // auditCmd represents the audit command
 var auditCmd = &cobra.Command{
 	Use:   "audit",
-	Short: "A brief description of your command",
-	Long: `A longer description that spans multiple lines and likely contains examples
-and usage of using your command. For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Short: "Audit a host for common security issues",
 	Run: func(cmd *cobra.Command, args []string) {
-		audit.Run()
+		audit.Run(audit.Options{
+			CheckSSHD:     auditArgs.sshd,
+			CheckVersions: auditArgs.versions,
+			MaxPackages:   auditArgs.max,
+			Timeout:       auditArgs.timeout,
+		})
 	},
 }
 
 func init() {
 	rootCmd.AddCommand(auditCmd)
 
-	// Here you will define your flags and configuration settings.
+	def := audit.DefaultOptions()
+	auditCmd.Flags().BoolVar(&auditArgs.sshd, "sshd", def.CheckSSHD, "Audit SSHD configuration (Linux only)")
+	auditCmd.Flags().BoolVar(&auditArgs.versions, "versions", def.CheckVersions, "Check installed software versions against OSV (best-effort)")
+	auditCmd.Flags().IntVar(&auditArgs.max, "max", def.MaxPackages, "Maximum packages to query against OSV")
+	auditCmd.Flags().DurationVar(&auditArgs.timeout, "timeout", def.Timeout, "Timeout for OSV queries (e.g. 5s)")
 
-	// Cobra supports Persistent Flags which will work for this command
-	// and all subcommands, e.g.:
-	// auditCmd.PersistentFlags().String("foo", "", "A help for foo")
-
-	// Cobra supports local flags which will only run when this command
-	// is called directly, e.g.:
-	// auditCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

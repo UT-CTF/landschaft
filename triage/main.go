@@ -38,6 +38,12 @@ func Run() {
 		// ignore error
 	}
 
+	fmt.Println(util.TitleColor.Render("Non-default services"))
+
+	if _, err := file.Write([]byte(runServicesTriage())); err != nil {
+		// ignore error
+	}
+
 	if _, err := file.Write([]byte(getDomainInfo())); err != nil {
 		// ignore error
 	}

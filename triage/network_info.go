@@ -91,7 +91,6 @@ func printIPAddrs() string {
 		if len(temp) > 2 {
 			result += iface.Name + temp
 		}
-		//result = result + "\t" + printAddrs(ipv6Addrs, "  IPv6 Addresses:")
 		printAddrs(ipv6Addrs, "  IPv6 Addresses:")
 	}
 	return "\"" + result + "\""

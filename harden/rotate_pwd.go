@@ -33,6 +33,16 @@ var rotatePwdCmd = &cobra.Command{
 			getUsersCmd = getDomainUsers
 			applyPasswordCmd = applyDomainPasswordChanges
 		}
+		if PlanMode && apply {
+			users, err := getUsersCmd()
+			if err != nil {
+				fmt.Println("Plan: could not list users:", err)
+				return
+			}
+			filtered, _ := filterBlacklistedUsers(users, append(defaultBlacklist, blacklist...))
+			fmt.Printf("Plan: would apply passwords from %q to %d users: %v\n", filePath, len(filtered), filtered)
+			return
+		}
 		rotateLocalUsers(apply, generate, filePath, length, blacklist, allowedCharacters, getUsersCmd, applyPasswordCmd)
 	},
 }

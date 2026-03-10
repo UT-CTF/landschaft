@@ -33,8 +33,17 @@ var firewallCmd = &cobra.Command{
 				direction = "outbound"
 			}
 
+			if PlanMode {
+				fmt.Printf("Plan: would apply %s rules from file %q (backup: %s, old rules out: %s)\n", direction, firewallArgs.ruleFile, firewallArgs.backupPath, firewallArgs.oldRuleFile)
+				return
+			}
+
 			applyFirewallRules(firewallArgs.ruleFile, firewallArgs.backupPath, firewallArgs.oldRuleFile, direction)
 		} else if firewallArgs.removeOld {
+			if PlanMode {
+				fmt.Printf("Plan: would remove old firewall rules from file %q\n", firewallArgs.oldRulesIn)
+				return
+			}
 			removeOldFirewallRules(firewallArgs.oldRulesIn)
 		} else {
 			generateFirewallRules(firewallArgs.outbound)

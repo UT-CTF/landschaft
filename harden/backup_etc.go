@@ -16,8 +16,11 @@ var backupEtcCmd = &cobra.Command{
 			fmt.Println("Error getting directory")
 			return
 		}
+		if PlanMode {
+			fmt.Printf("Plan: would backup /etc to %s\n", backupPath)
+			return
+		}
 		backup_etc(backupPath)
-
 	},
 }
 
@@ -31,8 +34,11 @@ var restoreEtcCmd = &cobra.Command{
 			fmt.Println("Error getting directory")
 			return
 		}
+		if PlanMode {
+			fmt.Printf("Plan: would restore /etc from %s\n", backupPath)
+			return
+		}
 		restore_etc(backupPath)
-
 	},
 }
 

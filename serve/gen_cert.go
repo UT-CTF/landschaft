@@ -17,10 +17,6 @@ import (
 	"github.com/charmbracelet/log"
 )
 
-// raaaaa we need just one cert generation function, not different files
-// todo: merge cert generation
-
-// todo: merge this out into general utils
 func getBindingAddresses() ([]net.IP, error) {
 	// get all network interfaces
 	interfaces, err := net.Interfaces()
@@ -46,22 +42,12 @@ func getBindingAddresses() ([]net.IP, error) {
 	return addresses, nil
 }
 
-func getHostname() (string, error) {
-	hostname, err := os.Hostname()
-	if err != nil {
-		return "", fmt.Errorf("failed to get hostname: %v", err)
-	}
-	return hostname, nil
-}
-
 func generateCert() ([]byte, []byte, error) {
-	// Generate a private key
 	privateKey, err := ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	if err != nil {
 		return nil, nil, fmt.Errorf("failed to generate private key: %v", err)
 	}
 
-	// Create certificate template
 	serialNumberLimit := new(big.Int).Lsh(big.NewInt(1), 128)
 	serialNumber, err := rand.Int(rand.Reader, serialNumberLimit)
 	if err != nil {
@@ -69,9 +55,9 @@ func generateCert() ([]byte, []byte, error) {
 	}
 
 	notBefore := time.Now()
-	notAfter := notBefore.Add(365 * 24 * time.Hour) // Valid for 1 year
+	notAfter := notBefore.Add(365 * 24 * time.Hour)
 
-	hostname, err := getHostname()
+	hostname, err := os.Hostname()
 	if err != nil {
 		log.Error("Error getting hostname, using localhost")
 		hostname = "localhost"

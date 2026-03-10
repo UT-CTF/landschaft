@@ -3,7 +3,9 @@ package cmd
 import (
 	"fmt"
 	"os"
+	"time"
 
+	"github.com/UT-CTF/landschaft/util"
 	"github.com/spf13/cobra"
 )
 
@@ -13,6 +15,9 @@ var (
 	BuildTime = "unknown"
 )
 
+var actionLogPath string
+var actionLogStart time.Time
+
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
 	Use:   "landschaft",
@@ -20,9 +25,13 @@ var rootCmd = &cobra.Command{
 	Long: `Landschaft is a cross-platform cybersecurity tool designed for rapid system
 hardening, triage, and monitoring.`,
 	Version: fmt.Sprintf("%s (built: %s)", Version, BuildTime),
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	// Run: func(cmd *cobra.Command, args []string) { },
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		actionLogStart = time.Now()
+	},
+	PersistentPostRun: func(cmd *cobra.Command, args []string) {
+		path := util.ParseActionLogPath(actionLogPath)
+		util.AppendActionLog(path, util.NewActionLogEntry(os.Args, 0, actionLogStart))
+	},
 }
 
 // Execute adds all child commands to the root command and sets flags appropriately.
@@ -30,18 +39,13 @@ hardening, triage, and monitoring.`,
 func Execute() {
 	err := rootCmd.Execute()
 	if err != nil {
+		path := util.ParseActionLogPath(actionLogPath)
+		util.AppendActionLog(path, util.NewActionLogEntry(os.Args, 1, actionLogStart))
 		os.Exit(1)
 	}
 }
 
 func init() {
-	// Here you will define your flags and configuration settings.
-	// Cobra supports persistent flags, which, if defined here,
-	// will be global for your application.
-
-	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.landschaft.yaml)")
-
-	// Cobra also supports local flags, which will only run
-	// when this action is called directly.
+	rootCmd.PersistentFlags().StringVar(&actionLogPath, "action-log", "", "Path to action log JSONL (default: ./landschaft-actions.jsonl or LANDSCHAFT_ACTION_LOG)")
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
 }

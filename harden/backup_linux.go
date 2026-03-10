@@ -75,9 +75,3 @@ func copyFile(src, dst string) error {
 	return err
 }
 
-func max(a, b int) int {
-	if a > b {
-		return a
-	}
-	return b
-}

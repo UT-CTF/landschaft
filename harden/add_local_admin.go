@@ -1,6 +1,8 @@
 package harden
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -11,6 +13,10 @@ var addLocalAdminCmd = &cobra.Command{
 	Args:  cobra.ExactArgs(1),
 	Run: func(cmd *cobra.Command, args []string) {
 		username := args[0]
+		if PlanMode {
+			fmt.Printf("Plan: would add local admin %q\n", username)
+			return
+		}
 		addLocalAdmin(username)
 	},
 }

@@ -26,3 +26,8 @@ func RunAndRedirectScript(scriptPath string, args ...string) {
 		return
 	}
 }
+
+// RunScriptQuiet runs the script and returns output without printing (for use when caller formats output).
+func RunScriptQuiet(scriptPath string, args ...string) (string, error) {
+	return embed.ExecuteScript(scriptPath, false, args...)
+}

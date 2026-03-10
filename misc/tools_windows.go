@@ -65,16 +65,12 @@ var toolCommands = []*cobra.Command{
 }
 
 func setupToolsCommand(cmd *cobra.Command) {
-
 	nxlogCmd.Flags().StringVarP(&nxlogUrl, "url", "u", "", "URL to download Nxlog from")
 	nxlogCmd.Flags().BoolVarP(&install, "install", "i", false, "Install Nxlog")
 	nxlogCmd.Flags().StringVarP(&certFile, "cert", "c", "", "Path to the certificate file")
 	nxlogCmd.Flags().StringVarP(&configFile, "config", "f", "", "Path to the configuration file")
-
 	nxlogCmd.MarkFlagsRequiredTogether("install", "url")
-
 	cmd.AddGroup(toolsGroup)
-
 	for _, toolCmd := range toolCommands {
 		toolCmd.GroupID = toolsGroup.ID
 		cmd.AddCommand(toolCmd)
@@ -86,146 +82,95 @@ func installSysinternals(targetDir string) {
 		fmt.Println("Error: No target directory specified")
 		return
 	}
-
-	url := "https://download.sysinternals.com/files/SysinternalsSuite.zip"
-
-	zipData, err := downloadData(url)
+	zipData, err := downloadData("https://download.sysinternals.com/files/SysinternalsSuite.zip")
 	if err != nil {
-		fmt.Println("Error downloading Sysinternals Suite: ", err)
+		fmt.Println("Error downloading Sysinternals Suite:", err)
 		return
 	}
-
 	extractZip(zipData, targetDir)
-
 	fmt.Println("Sysinternals Suite installed successfully")
 }
 
-// func installPython() {
-// 	fmt.Println("Not implemented")
-// }
-
 func installFirefox() {
-	url := "https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US"
-
-	data, err := downloadData(url)
+	tmpPath, err := downloadToTemp(
+		"https://download.mozilla.org/?product=firefox-latest&os=win64&lang=en-US",
+		"firefox-*.exe",
+	)
 	if err != nil {
-		fmt.Println("Error downloading Firefox: ", err)
+		fmt.Println("Error downloading Firefox:", err)
 		return
 	}
-
-	installFile, err := os.CreateTemp("", "firefox-*.exe")
-	if err != nil {
-		fmt.Println("Error creating temporary file: ", err)
+	defer os.Remove(tmpPath)
+	if err := exec.Command(tmpPath, "/silent").Run(); err != nil {
+		fmt.Println("Error running installer:", err)
 		return
 	}
-
-	_, err = installFile.Write(data)
-	if err != nil {
-		fmt.Println("Error writing data to file: ", err)
-		return
-	}
-	installFile.Close()
-	defer os.Remove(installFile.Name())
-
-	cmd := exec.Command(installFile.Name(), "/silent")
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Error running installer: ", err)
-		return
-	}
-
 	fmt.Println("Firefox installed successfully")
 }
 
 func installNxlog() {
-	url := nxlogUrl
-	data, err := downloadData(url)
+	tmpPath, err := downloadToTemp(nxlogUrl, "nxlog-*.msi")
 	if err != nil {
-		fmt.Println("Error downloading Nxlog: ", err)
+		fmt.Println("Error downloading Nxlog:", err)
 		return
 	}
-
-	installFile, err := os.CreateTemp("", "nxlog-*.msi")
-	if err != nil {
-		fmt.Println("Error creating temporary file: ", err)
+	if err := exec.Command("msiexec", "/i", tmpPath, "/quiet").Run(); err != nil {
+		fmt.Println("Error running installer:", err, tmpPath)
 		return
 	}
-
-	_, err = installFile.Write(data)
-	if err != nil {
-		fmt.Println("Error writing data to file: ", err)
+	if err := exec.Command("sc", "stop", "nxlog").Run(); err != nil {
+		fmt.Println("Error stopping Nxlog service:", err)
 		return
 	}
-	installFile.Close()
-	// defer os.Remove(installFile.Name())
-
-	cmd := exec.Command("msiexec", "/i", installFile.Name(), "/quiet")
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Error running installer: ", err)
-		fmt.Println(installFile.Name())
-		return
-	}
-
-	cmd = exec.Command("sc", "stop", "nxlog")
-	err = cmd.Run()
-	if err != nil {
-		fmt.Println("Error stopping Nxlog service: ", err)
-		return
-	}
-
 	tmpConfPath := path.Join(os.TempDir(), "nxlog-landschaft-temp.conf")
 	embed.ExtractFile("misc/nxlog.conf", tmpConfPath)
 	defer os.Remove(tmpConfPath)
 	loadNxlogConfig(tmpConfPath)
-
 	fmt.Println("Nxlog installed successfully")
 }
 
-func loadNxlogCert(certFile string) {
-	cfile, err := os.Create("C:/Program Files/nxlog/cert/graylog-ca.pem")
-	if err != nil {
-		fmt.Println("Error creating certificate file: ", err)
+func loadNxlogCert(src string) {
+	if err := copyFileTo(`C:\Program Files\nxlog\cert\graylog-ca.pem`, src); err != nil {
+		fmt.Println("Error loading certificate:", err)
 		return
 	}
-	defer cfile.Close()
-
-	data, err := os.ReadFile(certFile)
-	if err != nil {
-		fmt.Println("Error reading certificate file: ", err)
-		return
-	}
-
-	_, err = cfile.Write(data)
-	if err != nil {
-		fmt.Println("Error writing certificate file: ", err)
-		return
-	}
-
 	fmt.Println("Certificate loaded successfully")
 }
 
-func loadNxlogConfig(configFile string) {
-	cfile, err := os.Create("C:/Program Files/nxlog/conf/nxlog.conf")
-	if err != nil {
-		fmt.Println("Error creating configuration file: ", err)
+func loadNxlogConfig(src string) {
+	if err := copyFileTo(`C:\Program Files\nxlog\conf\nxlog.conf`, src); err != nil {
+		fmt.Println("Error loading configuration:", err)
 		return
 	}
-	defer cfile.Close()
-
-	data, err := os.ReadFile(configFile)
-	if err != nil {
-		fmt.Println("Error reading configuration file: ", err)
-		return
-	}
-
-	_, err = cfile.Write(data)
-	if err != nil {
-		fmt.Println("Error writing configuration file: ", err)
-		return
-	}
-
 	fmt.Println("Configuration loaded successfully")
+}
+
+// copyFileTo copies the file at src to dst, overwriting dst if it exists.
+func copyFileTo(dst, src string) error {
+	data, err := os.ReadFile(src)
+	if err != nil {
+		return fmt.Errorf("reading %s: %w", src, err)
+	}
+	return os.WriteFile(dst, data, 0644)
+}
+
+// downloadToTemp downloads url and writes the result to a temp file with the given name pattern.
+// The caller is responsible for removing the returned path.
+func downloadToTemp(url, pattern string) (string, error) {
+	data, err := downloadData(url)
+	if err != nil {
+		return "", err
+	}
+	f, err := os.CreateTemp("", pattern)
+	if err != nil {
+		return "", fmt.Errorf("creating temp file: %w", err)
+	}
+	defer f.Close()
+	if _, err := f.Write(data); err != nil {
+		os.Remove(f.Name())
+		return "", fmt.Errorf("writing temp file: %w", err)
+	}
+	return f.Name(), nil
 }
 
 func downloadData(url string) ([]byte, error) {
@@ -234,60 +179,48 @@ func downloadData(url string) ([]byte, error) {
 		return nil, fmt.Errorf("error downloading data: %w", err)
 	}
 	defer resp.Body.Close()
-
 	if resp.StatusCode != 200 {
 		return nil, fmt.Errorf("error downloading data: %s", resp.Status)
 	}
-
 	data, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("error reading data: %w", err)
 	}
-
 	return data, nil
 }
 
 func extractZip(zipData []byte, targetDir string) {
 	zipReader, err := zip.NewReader(bytes.NewReader(zipData), int64(len(zipData)))
 	if err != nil {
-		fmt.Println("Error reading Sysinternals Suite: ", err)
+		fmt.Println("Error reading Sysinternals Suite:", err)
 		return
 	}
-
-	err = os.MkdirAll(targetDir, 0755)
-	if err != nil {
+	if err = os.MkdirAll(targetDir, 0755); err != nil {
 		fmt.Println("Error creating target directory")
 		return
 	}
-
 	for _, file := range zipReader.File {
 		fileReader, err := file.Open()
 		if err != nil {
-			fmt.Println("Error opening file: ", err)
+			fmt.Println("Error opening file:", err)
 			return
 		}
 		defer fileReader.Close()
-
 		extractedPath := filepath.Join(targetDir, file.Name)
-
 		if file.FileInfo().IsDir() {
-			err = os.MkdirAll(extractedPath, os.ModePerm)
-			if err != nil {
-				fmt.Println("Error creating directory: ", err)
+			if err = os.MkdirAll(extractedPath, os.ModePerm); err != nil {
+				fmt.Println("Error creating directory:", err)
 				return
 			}
 		} else {
-			// If the file is not a directory, create and write the file
 			extractedFile, err := os.Create(extractedPath)
 			if err != nil {
-				fmt.Println("Error creating file: ", err)
+				fmt.Println("Error creating file:", err)
 				return
 			}
 			defer extractedFile.Close()
-
-			_, err = io.Copy(extractedFile, fileReader)
-			if err != nil {
-				fmt.Println("Error copying file: ", err)
+			if _, err = io.Copy(extractedFile, fileReader); err != nil {
+				fmt.Println("Error copying file:", err)
 				return
 			}
 		}
