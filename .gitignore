@@ -1,4 +1,10 @@
-#ide stuff
+# Claude Code project settings
+.claude/
+
+# GitHub Actions / repo metadata
+.github/
+
+# IDE
 *.idea
 .idea/
 
@@ -32,7 +38,20 @@ build/
 
 # script artifacts
 /*.csv
+*.csv
 *.crt
 *.key
+*.bundle.crt
 go/
 vendor/
+
+# generated landschaft output files
+triage.tsv
+landschaft-actions.jsonl
+landschaft-detections.jsonl
+agent_keys/
+
+# local test/dev artifacts
+test-inject-report.md
+*.heapsnapshot
+*-diagnostics.json
