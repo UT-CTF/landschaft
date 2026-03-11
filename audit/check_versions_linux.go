@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/exec"
 	"strings"
-	"time"
 )
 
 func checkSoftwareVersions(opts Options) {

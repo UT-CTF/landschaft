@@ -77,17 +77,33 @@ func setupToolsCommand(cmd *cobra.Command) {
 	}
 }
 
+// EnsureSysinternals ensures the Sysinternals Suite is present in dir,
+// downloading and extracting it if autorunsc64.exe is not found.
+func EnsureSysinternals(dir string) error {
+	if _, err := os.Stat(filepath.Join(dir, "autorunsc64.exe")); err == nil {
+		return nil
+	}
+	fmt.Printf("Downloading Sysinternals to %s...\n", dir)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("creating directory: %w", err)
+	}
+	zipData, err := downloadData("https://download.sysinternals.com/files/SysinternalsSuite.zip")
+	if err != nil {
+		return fmt.Errorf("downloading Sysinternals: %w", err)
+	}
+	extractZip(zipData, dir)
+	return nil
+}
+
 func installSysinternals(targetDir string) {
 	if len(targetDir) == 0 {
 		fmt.Println("Error: No target directory specified")
 		return
 	}
-	zipData, err := downloadData("https://download.sysinternals.com/files/SysinternalsSuite.zip")
-	if err != nil {
-		fmt.Println("Error downloading Sysinternals Suite:", err)
+	if err := EnsureSysinternals(targetDir); err != nil {
+		fmt.Println("Error installing Sysinternals Suite:", err)
 		return
 	}
-	extractZip(zipData, targetDir)
 	fmt.Println("Sysinternals Suite installed successfully")
 }
 

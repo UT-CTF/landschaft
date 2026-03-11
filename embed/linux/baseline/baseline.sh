@@ -1,134 +1,198 @@
 #!/bin/bash
+# baseline.sh <dir>
+# Creates a numbered snapshot in <dir>/baseline/N/ and diffs with the previous run.
 
-# Directory for baselining information
-baseline_dir="$1/baseline"
+set -euo pipefail
 
-# Function to create numbered directories
-create_numbered_directory() {
+baseline_dir="${1:-.}/baseline"
+
+create_snapshot_dir() {
     mkdir -p "$baseline_dir"
-    chmod 600 "$baseline_dir"
-    latest_dir=$(ls -1 "$baseline_dir" | sort -n | tail -n 1)
-    if [[ -z $latest_dir ]]; then
-        next_dir="1"
+    chmod 700 "$baseline_dir"
+    local latest
+    latest=$(ls -1 "$baseline_dir" 2>/dev/null | grep -E '^[0-9]+$' | sort -n | tail -1)
+    if [[ -z "$latest" ]]; then
+        snap_num=1
     else
-        next_dir=$((latest_dir + 1))
+        snap_num=$((latest + 1))
     fi
-    mkdir -p "$baseline_dir/$next_dir"
+    snap_dir="$baseline_dir/$snap_num"
+    mkdir -p "$snap_dir"
+    echo "Creating snapshot #$snap_num in $snap_dir"
 }
 
-# Function to gather system information
 gather_system_info() {
-    echo "=== System Information ===" > "$baseline_dir/$next_dir/system_info.txt"
-    uname -a >> "$baseline_dir/$next_dir/system_info.txt"
+    {
+        echo "=== System Information ==="
+        uname -a
+        echo
+        echo "=== OS Release ==="
+        cat /etc/os-release 2>/dev/null || true
+        echo
+        echo "=== Uptime ==="
+        uptime
+    } > "$snap_dir/system_info.txt"
 }
 
-# Function to gather network information
 gather_network_info() {
-    echo "=== Network Configuration ===" > "$baseline_dir/$next_dir/network_info.txt"
-    ip a >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== Routes ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    ip route show all >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== Netstat ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    netstat -tuln >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== IpTables ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    iptables-save >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    ip6tables-save >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== Sessions ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    w >> "$baseline_dir/$next_dir/network_info.txt"
-    echo >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== Ports ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    ss -nltup >> "$baseline_dir/$next_dir/network_info.txt"
-    echo "=== resolv.conf ===" >> "$baseline_dir/$next_dir/network_info.txt"
-    cat "/etc/resolv.conf" >> "$baseline_dir/$next_dir/network_info.txt"
+    {
+        echo "=== Network Interfaces ==="
+        ip a
+        echo
+        echo "=== Routes ==="
+        ip route show all
+        echo
+        echo "=== Listening Ports ==="
+        ss -nltup
+        echo
+        echo "=== Active Sessions ==="
+        w
+        echo
+        echo "=== Firewall (iptables) ==="
+        iptables-save 2>/dev/null || echo "iptables not available"
+        echo
+        ip6tables-save 2>/dev/null || true
+        echo
+        echo "=== DNS ==="
+        cat /etc/resolv.conf 2>/dev/null || true
+    } > "$snap_dir/network_info.txt"
 }
 
-# Function to gather user information
 gather_user_info() {
-    echo "=== User Information ===" > "$baseline_dir/$next_dir/user_info.txt"
-    cat /etc/passwd >> "$baseline_dir/$next_dir/user_info.txt"
-    echo >> "$baseline_dir/$next_dir/user_info.txt"
-    echo "=== Sudoers ===" >> "$baseline_dir/$next_dir/user_info.txt"
-    cat /etc/sudoers >> "$baseline_dir/$next_dir/user_info.txt"
-    echo >> "$baseline_dir/$next_dir/user_info.txt"
-    echo "=== Authorized Keys ===" >> "$baseline_dir/$next_dir/user_info.txt"
-    all_users=$(getent passwd | cut -d: -f1)
-    for user in $all_users; do
-        local authorized_keys_file="~$user/.ssh/authorized_keys"
-        if [ -f "$authorized_keys_file" ]; then
-            echo "=== Authorized keys for user: $user ===" >> "$baseline_dir/$next_dir/user_info.txt"
-            cat "$authorized_keys_file" >> "$baseline_dir/$next_dir/user_info.txt"
-            echo >> "$baseline_dir/$next_dir/user_info.txt"
+    {
+        echo "=== /etc/passwd ==="
+        cat /etc/passwd
+        echo
+        echo "=== /etc/group ==="
+        cat /etc/group
+        echo
+        echo "=== Sudoers ==="
+        cat /etc/sudoers 2>/dev/null || echo "Cannot read sudoers"
+        echo
+        echo "=== Authorized Keys ==="
+        while IFS=: read -r user _ _ _ _ home _; do
+            key_file="$home/.ssh/authorized_keys"
+            if [[ -f "$key_file" ]]; then
+                echo "--- $user ---"
+                cat "$key_file"
+                echo
+            fi
+        done < /etc/passwd
+        echo
+        echo "=== Last Logins ==="
+        last -n 20 2>/dev/null || true
+    } > "$snap_dir/user_info.txt"
+}
+
+gather_packages() {
+    {
+        echo "=== Installed Packages ==="
+        if command -v dpkg-query &>/dev/null; then
+            dpkg-query -W -f='${Package}\t${Version}\n'
+        elif command -v rpm &>/dev/null; then
+            rpm -qa --qf '%{NAME}\t%{VERSION}-%{RELEASE}\n'
+        elif command -v apk &>/dev/null; then
+            apk info -v
+        else
+            echo "No supported package manager found"
         fi
-    done
+    } > "$snap_dir/packages.txt"
 }
 
-# Function to gather installed packages information
-gather_installed_packages() {
-    echo "=== Installed Packages ===" > "$baseline_dir/$next_dir/installed_packages.txt"
-    dpkg -l >> "$baseline_dir/$next_dir/installed_packages.txt"  # For Debian-based systems
-    # rpm -qa >> "$baseline_dir/$next_dir/installed_packages.txt"  # For RPM-based systems like Red Hat, CentOS
-}
-
-# Function to gather filesystem information
-gather_filesystem_info() {
-    echo "=== Filesystem Information ===" > "$baseline_dir/$next_dir/filesystem_info.txt"
-    df -h >> "$baseline_dir/$next_dir/filesystem_info.txt"
-}
-
-gather_process_info() {
-    echo "=== Process Information ===" > "$baseline_dir/$next_dir/process_info.txt"
-    ps aux >> "$baseline_dir/$next_dir/process_info.txt"
-    echo >> "$baseline_dir/$next_dir/process_info.txt"
-    all_users=$(getent passwd | cut -d: -f1)
-    for user in $all_users; do
-        local user_crontab=$(crontab -u "$user" -l 2>/dev/null)
-        if [ -n "$user_crontab" ]; then
-            echo "=== Crontab for user: $user ===" >> "$baseline_dir/$next_dir/process_info.txt"
-            echo "$user_crontab" >> "$baseline_dir/$next_dir/process_info.txt"
+gather_services() {
+    {
+        echo "=== Services ==="
+        if command -v systemctl &>/dev/null; then
+            systemctl list-units --type=service --all --no-pager
+            echo
+            echo "=== Enabled Services ==="
+            systemctl list-unit-files --type=service --state=enabled --no-pager
+        else
+            service --status-all 2>&1 || true
         fi
-    done
+    } > "$snap_dir/services.txt"
 }
 
-# Function to diff files from the current run with the previous run
-diff_with_previous_run() {
-    prev_dir=$(($next_dir - 1))
-    if [ -d "$baseline_dir/$prev_dir" ]; then
-        echo "=== Differences from previous run ==="
-        echo "=== System ==="
-        diff -u "$baseline_dir/$prev_dir/system_info.txt" "$baseline_dir/$next_dir/system_info.txt"
-        echo "=== Network ==="
-        diff -u "$baseline_dir/$prev_dir/network_info.txt" "$baseline_dir/$next_dir/network_info.txt"
-        echo "=== User ==="
-        diff -u "$baseline_dir/$prev_dir/user_info.txt" "$baseline_dir/$next_dir/user_info.txt"
-        echo "=== Packages ==="
-        diff -u "$baseline_dir/$prev_dir/installed_packages.txt" "$baseline_dir/$next_dir/installed_packages.txt"
-        echo "=== Filesystem ==="
-        diff -u "$baseline_dir/$prev_dir/filesystem_info.txt" "$baseline_dir/$next_dir/filesystem_info.txt"
-        echo "=== Process ==="
-        diff -u "$baseline_dir/$prev_dir/process_info.txt" "$baseline_dir/$next_dir/process_info.txt"
-    else
-        echo "No previous run to compare with."
+gather_processes() {
+    {
+        echo "=== Running Processes ==="
+        ps aux
+        echo
+        echo "=== Crontabs ==="
+        crontab -l 2>/dev/null && echo "(root crontab above)" || echo "No root crontab"
+        echo
+        for dir in /var/spool/cron/crontabs /var/spool/cron; do
+            if [[ -d "$dir" ]]; then
+                for f in "$dir"/*; do
+                    [[ -f "$f" ]] || continue
+                    echo "--- $(basename "$f") ---"
+                    cat "$f"
+                    echo
+                done
+            fi
+        done
+        echo
+        echo "=== System Cron ==="
+        ls /etc/cron.d/ 2>/dev/null && cat /etc/cron.d/* 2>/dev/null || true
+    } > "$snap_dir/processes.txt"
+}
+
+gather_filesystem() {
+    {
+        echo "=== Disk Usage ==="
+        df -h
+        echo
+        echo "=== Mounts ==="
+        cat /proc/mounts 2>/dev/null || mount
+        echo
+        echo "=== SUID/SGID Files ==="
+        find / -xdev \( -perm -4000 -o -perm -2000 \) -type f 2>/dev/null | sort
+    } > "$snap_dir/filesystem.txt"
+}
+
+diff_with_previous() {
+    local prev_num=$((snap_num - 1))
+    local prev_dir="$baseline_dir/$prev_num"
+    if [[ ! -d "$prev_dir" ]]; then
+        echo "No previous snapshot to compare with."
+        return
     fi
+    echo
+    echo "=== Changes from snapshot #$prev_num to #$snap_num ==="
+    for f in system_info network_info user_info packages services processes filesystem; do
+        local cur="$snap_dir/${f}.txt"
+        local prev="$prev_dir/${f}.txt"
+        if [[ -f "$cur" && -f "$prev" ]]; then
+            local d
+            d=$(diff -u "$prev" "$cur" 2>/dev/null || true)
+            if [[ -n "$d" ]]; then
+                echo
+                echo "--- $f ---"
+                echo "$d"
+            fi
+        fi
+    done
 }
 
-# Main function to execute all the gathering functions and diff
 main() {
-    echo "Creating system baseline..."
-    create_numbered_directory
+    create_snapshot_dir
+    echo "Gathering system info..."
     gather_system_info
+    echo "Gathering network info..."
     gather_network_info
+    echo "Gathering user info..."
     gather_user_info
-    gather_installed_packages
-    gather_filesystem_info
-    gather_process_info
-    echo "System baseline created in directory: $baseline_dir/$next_dir"
-    diff_with_previous_run
+    echo "Gathering packages..."
+    gather_packages
+    echo "Gathering services..."
+    gather_services
+    echo "Gathering processes..."
+    gather_processes
+    echo "Gathering filesystem info..."
+    gather_filesystem
+    echo
+    echo "Snapshot #$snap_num complete: $snap_dir"
+    diff_with_previous
 }
 
-# Call the main function
 main

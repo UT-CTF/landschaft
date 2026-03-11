@@ -15,10 +15,14 @@ func discoverListeners() ([]Listener, error) {
 			continue
 		}
 		port := uint16(e.LocalAddr.Port)
+		procName := ""
+		if e.Process != nil {
+			procName = e.Process.Name
+		}
 		out = append(out, Listener{
 			Port:    port,
 			Proto:   "tcp",
-			Process: e.Process,
+			Process: procName,
 			Bind:    e.LocalAddr.IP.String(),
 			Explain: PortExplain(port),
 		})
