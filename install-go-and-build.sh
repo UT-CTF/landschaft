@@ -12,7 +12,7 @@ else
   export PATH=$PATH:$HOME/go/bin
 fi
 
-sudo apt update && sudo apt install -y libpcap-dev
+sudo apt update && sudo apt install -y libpcap-dev build-essential
 
 # Run build.sh
 echo "Running build script..."
