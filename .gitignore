@@ -32,6 +32,8 @@ build/
 
 # script artifacts
 /*.csv
+/*.tsv
+*.tsv
 *.crt
 *.key
 go/

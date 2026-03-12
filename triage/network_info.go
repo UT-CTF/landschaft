@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sort"
 
 	"github.com/cakturk/go-netstat/netstat"
 	"github.com/charmbracelet/log"
@@ -110,14 +111,40 @@ func printAddrs(list []string, msg string) string {
 }
 
 func printSockets(title string, sockets []netstat.SockTabEntry) string {
-	var result = ""
-	if len(sockets) > 0 {
-		fmt.Print(title)
-		for _, e := range sockets {
-			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
+	type entry struct {
+		port    uint16
+		process string
+	}
+
+	var result string
+	seen := make(map[uint16]bool)
+	var entries []entry
+
+	for _, e := range sockets {
+		if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
+			port := e.LocalAddr.Port
+
+			if !seen[port] {
+				seen[port] = true
+				entries = append(entries, entry{
+					port:    port,
+					process: e.Process.String(),
+				})
+
 				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
-				result += fmt.Sprintf("%d\t%s\n", e.LocalAddr.Port, e.Process)
 			}
+		}
+	}
+
+	if len(entries) > 0 {
+		fmt.Print(title)
+
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].port < entries[j].port
+		})
+
+		for _, e := range entries {
+			result += fmt.Sprintf("%d\t%s\n", e.port, e.process)
 		}
 	}
 
@@ -136,7 +163,7 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += "## TCP ##\n" + printSockets("\nTCP IPv4 Sockets:", tcpSocks)
+		result += "## TCPv4 ##\n" + printSockets("\nTCP IPv4 Sockets:", tcpSocks)
 	}
 	// Get UDP IPv4 sockets
 	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
@@ -144,23 +171,23 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += "\n## UDP ##\n" + printSockets("\nUDP IPv4 Sockets:", udpSocks)
+		result += "\n\n## UDPv4 ##\n" + printSockets("\nUDP IPv4 Sockets:", udpSocks)
 	}
 	// Get TCP IPv6 sockets
 	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		//result += "err"
+		result += "err"
 	} else {
-		printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
+		result += "\n\n## TCPv6 ##\n" + printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
 	}
 	// Get UDP IPv6 sockets
 	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		//result += "err"
+		result += "err"
 	} else {
-		printSockets("\nUDP IPv6 Sockets:", udp6Socks)
+		result += "\n\n## UDPv6 ##\n" + printSockets("\nUDP IPv6 Sockets:", udp6Socks)
 	}
 	return "\"" + result + "\"\t"
 }
