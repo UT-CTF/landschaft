@@ -136,7 +136,7 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += "## TCP ##\n" + printSockets("\nTCP IPv4 Sockets:", tcpSocks)
+		result += "## TCPv4 ##\n" + printSockets("\nTCP IPv4 Sockets:", tcpSocks)
 	}
 	// Get UDP IPv4 sockets
 	udpSocks, err := netstat.UDPSocks(netstat.NoopFilter)
@@ -144,23 +144,23 @@ func printNetstat() string {
 		fmt.Print(err)
 		result += "err"
 	} else {
-		result += "\n## UDP ##\n" + printSockets("\nUDP IPv4 Sockets:", udpSocks)
+		result += "\n\n## UDPv4 ##\n" + printSockets("\nUDP IPv4 Sockets:", udpSocks)
 	}
 	// Get TCP IPv6 sockets
 	tcp6Socks, err := netstat.TCP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		//result += "err"
+		result += "err"
 	} else {
-		printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
+		result += "\n\n## TCPv6 ##\n" + printSockets("\nTCP IPv6 Sockets:", tcp6Socks)
 	}
 	// Get UDP IPv6 sockets
 	udp6Socks, err := netstat.UDP6Socks(netstat.NoopFilter)
 	if err != nil {
 		fmt.Print(err)
-		//result += "err"
+		result += "err"
 	} else {
-		printSockets("\nUDP IPv6 Sockets:", udp6Socks)
+		result += "\n\n## UDPv6 ##\n" + printSockets("\nUDP IPv6 Sockets:", udp6Socks)
 	}
 	return "\"" + result + "\"\t"
 }
