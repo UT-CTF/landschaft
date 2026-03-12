@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sort"
 
 	"github.com/cakturk/go-netstat/netstat"
 	"github.com/charmbracelet/log"
@@ -110,14 +111,40 @@ func printAddrs(list []string, msg string) string {
 }
 
 func printSockets(title string, sockets []netstat.SockTabEntry) string {
-	var result = ""
-	if len(sockets) > 0 {
-		fmt.Print(title)
-		for _, e := range sockets {
-			if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
+	type entry struct {
+		port    uint16
+		process string
+	}
+
+	var result string
+	seen := make(map[uint16]bool)
+	var entries []entry
+
+	for _, e := range sockets {
+		if e.State.String() == "LISTEN" && !e.LocalAddr.IP.IsLoopback() {
+			port := e.LocalAddr.Port
+
+			if !seen[port] {
+				seen[port] = true
+				entries = append(entries, entry{
+					port:    port,
+					process: e.Process.String(),
+				})
+
 				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
-				result += fmt.Sprintf("%d\t%s\n", e.LocalAddr.Port, e.Process)
 			}
+		}
+	}
+
+	if len(entries) > 0 {
+		fmt.Print(title)
+
+		sort.Slice(entries, func(i, j int) bool {
+			return entries[i].port < entries[j].port
+		})
+
+		for _, e := range entries {
+			result += fmt.Sprintf("%d\t%s\n", e.port, e.process)
 		}
 	}
 
