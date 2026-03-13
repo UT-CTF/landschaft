@@ -126,12 +126,21 @@ func printSockets(title string, sockets []netstat.SockTabEntry) string {
 
 			if !seen[port] {
 				seen[port] = true
+
+				// Guard against nil Process which can cause a panic when calling String()
+				var procName string
+				if e.Process != nil {
+					procName = e.Process.String()
+				} else {
+					procName = "N/A"
+				}
+
 				entries = append(entries, entry{
 					port:    port,
-					process: e.Process.String(),
+					process: procName,
 				})
 
-				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, e.Process)
+				fmt.Printf("%s %s %d %s\n", e.LocalAddr.String(), e.State.String(), e.UID, procName)
 			}
 		}
 	}
