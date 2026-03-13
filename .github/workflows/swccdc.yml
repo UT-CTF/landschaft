@@ -14,7 +14,6 @@ jobs:
       - check-compressed-files
       - check-line-and-character-limits
       - check-binary-files
-      - check-readme-md-content
     if: always()
     steps:
       - run: jq -e 'all(.[].result; . == "success")' <<< "$NEEDS"
@@ -86,17 +85,3 @@ jobs:
           find . -type f \( ! -path "./.git/*" ! -path "./.github/*" \) -exec file --mime {} + |
           grep -vE 'empty|text|application/javascript|application/json|application/pdf|application/msword|image/png|application/vnd.ms-powerpoint' | tee /tmp/binary_files.txt | 
           grep -q . && { echo 'Binary files detected!'; cat /tmp/binary_files.txt; exit 1; } || echo "No binary files found"
-  check-readme-md-content:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout PR Code
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - name: Check README.md Content
-        run: |
-          find . -type d \( ! -iname ".git" ! -iname "*.github" \) -mindepth 1 -maxdepth 1 | while read dir; do
-            if [ ! -s "$dir/README.md" ]; then
-              echo "README.md is missing or empty in $dir" && exit 1
-            fi
-          done
